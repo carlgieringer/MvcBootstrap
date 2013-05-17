@@ -29,6 +29,16 @@
         /// <returns>The attached updated entity</returns>
         TEntity Update(TEntity entity);
 
+        /// <summary>
+        /// Creates a new instance of <see cref="TEntity"/> with <see cref="IEntity.Created"/> and
+        /// <see cref="IEntity.Modified"/> set to <see cref="DateTime.Now"/>.  
+        /// </summary>
+        /// <remarks>
+        /// The returned instance is not added or attached to repository's context.
+        /// </remarks>
+        /// <returns>
+        /// A new instance of <see cref="TEntity"/>
+        /// </returns>
         TEntity Create();
 
         TEntity GetById(int id);

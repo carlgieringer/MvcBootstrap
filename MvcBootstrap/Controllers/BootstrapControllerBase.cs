@@ -1,9 +1,6 @@
 ﻿namespace MvcBootstrap.Controllers
 {
-    using System;
     using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Data.Entity.Infrastructure;
     using System.Linq;
     using System.Web.Mvc;
 
@@ -29,6 +26,7 @@
         public BootstrapControllerBase(IBootstrapRepository<TEntity> repository)
         {
             this.Repository = repository;
+
             this.Config = new BootstrapControllerConfig<TEntity, TViewModel>
             {
                 CreateViewName = "Create",
@@ -41,8 +39,11 @@
             };
 
             this.EntityToViewModelMappingExpression = Mapper.CreateMap<TEntity, TViewModel>()
+                .ForMember(vm => vm.ConcurrentlyEdited, o => o.Ignore())
                 .ForMember(vm => vm.Id, o => o.ResolveUsing(e => e.Id == 0 ? (int?)null : e.Id));
-            this.ViewModelToEntityMappingExpression = Mapper.CreateMap<TViewModel, TEntity>();
+            this.ViewModelToEntityMappingExpression = Mapper.CreateMap<TViewModel, TEntity>()
+                .ForMember(e => e.Created, o => o.Ignore())
+                .ForMember(e => e.Modified, o => o.Ignore());
         }
 
         public IViewModelLabelSelector<TViewModel> LabelSelector
