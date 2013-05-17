@@ -91,6 +91,7 @@
     <Compile Include="ModelBinders\MvcBootstrapModelBinder.cs" />
     <Compile Include="Models\Attributes\ForLazyNavProperty.cs" />
     <Compile Include="Models\Attributes\RequiredEagerIdAttribute.cs" />
+    <Compile Include="Tests\TestHelper.cs" />
     <Compile Include="Views\Extensions\FlashKindExtensions.cs" />
     <Compile Include="Exceptions\UnhandledEnumException.cs" />
     <Compile Include="Controllers\HttpVerbs\HttpDelete.cs" />
