@@ -1,0 +1,18 @@
+﻿Employee Roles Controller
+Support for routing like /Employees/1/Roles/Update
+View for multiselect of Roles
+
+BootstrapControllerBase/Config for Automapper config
+Deep projecting of Automapper mapped properties?
+
+Handle entity validation errors - catch error around SaveChanges
+client-side validation
+
+user accounts
+
+Handle multiple flashes and display all separately.
+
+Handle navigation properties in optimistic concurrency errors.
+
+Separate view models for list/details
+
