@@ -27,7 +27,7 @@
     /// must be used together is that we cannot make a single attribute inherit from <see cref="RequiredAttribute"/> and
     /// <see cref="ForeignKeyAttribute"/>
     /// </remarks>
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Property)]
     public class RequiredEagerIdAttribute : RequiredAttribute
     {
     }

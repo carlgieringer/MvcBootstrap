@@ -78,8 +78,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ViewModels\Attributes\HideInAttribute.cs" />
+    <Compile Include="Web\Mvc\Controllers\BootstrapAction.cs" />
+    <Compile Include="ViewModels\Attributes\ShowInAttribute.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapControllerBase.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapControllerConfig.cs" />
+    <Compile Include="Web\Mvc\Controllers\Extensions\ControllerBaseExtensions.cs" />
     <Compile Include="Web\Mvc\Controllers\Extensions\ControllerExtensions.cs" />
     <Compile Include="Web\Mvc\Controllers\Extensions\FlashKind.cs" />
     <Compile Include="Web\Mvc\Controllers\ILabelSelector.cs" />
@@ -93,6 +97,8 @@
     <Compile Include="Models\Attributes\ForLazyNavProperty.cs" />
     <Compile Include="Models\Attributes\RequiredEagerIdAttribute.cs" />
     <Compile Include="Testing\TestHelper.cs" />
+    <Compile Include="Web\Mvc\ModelMetadata\BootstrapActionVisibility.cs" />
+    <Compile Include="Web\Mvc\ModelMetadata\BootstrapModelMetadataProvider.cs" />
     <Compile Include="Web\Mvc\Views\Extensions\FlashKindExtensions.cs" />
     <Compile Include="Exceptions\UnhandledEnumException.cs" />
     <Compile Include="Web\Mvc\Controllers\HttpVerbs\HttpDelete.cs" />

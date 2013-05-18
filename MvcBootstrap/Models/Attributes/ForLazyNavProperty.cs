@@ -10,7 +10,7 @@
     /// <remarks>
     /// <see cref="RequiredEagerIdAttribute"/>
     /// </remarks>
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Property)]
     public class ForLazyNavPropertyAttribute : ForeignKeyAttribute
     {
         public ForLazyNavPropertyAttribute(string name)

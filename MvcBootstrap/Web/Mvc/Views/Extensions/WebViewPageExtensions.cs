@@ -42,7 +42,7 @@
 
         public static string ActionName<TModel>(this WebViewPage<TModel> page)
         {
-            return page.ViewContext.Controller.ControllerContext.RouteData.Values["action"].ToString();
+            return page.ViewContext.Controller.ActionName();
         }
 
         public static RouteValueDictionary RouteValues<TModel>(this WebViewPage<TModel> page)
