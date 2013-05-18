@@ -1,4 +1,4 @@
-﻿namespace MvcBootstrap.Controllers.Extensions
+﻿namespace MvcBootstrap.Web.Mvc.Controllers.Extensions
 {
     using System.IO;
     using System.Web.Mvc;

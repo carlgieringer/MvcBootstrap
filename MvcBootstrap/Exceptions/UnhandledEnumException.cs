@@ -2,7 +2,6 @@
 {
     using System;
 
-    using MvcBootstrap.Controllers.Extensions;
     using MvcBootstrap.Extensions;
 
     public class UnhandledEnumException<T> : Exception

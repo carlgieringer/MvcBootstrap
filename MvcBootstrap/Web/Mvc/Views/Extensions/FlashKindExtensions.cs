@@ -1,7 +1,7 @@
-﻿namespace MvcBootstrap.Views.Extensions
+﻿namespace MvcBootstrap.Web.Mvc.Views.Extensions
 {
-    using MvcBootstrap.Controllers.Extensions;
     using MvcBootstrap.Exceptions;
+    using MvcBootstrap.Web.Mvc.Controllers.Extensions;
 
     public static class FlashKindExtensions
     {

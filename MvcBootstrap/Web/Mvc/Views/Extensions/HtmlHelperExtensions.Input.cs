@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
-namespace GSASF.Views.Extensions
+﻿namespace MvcBootstrap.Web.Mvc.Views.Extensions
 {
+    using System;
+    using System.Collections.Generic;
     using System.Linq.Expressions;
     using System.Reflection;
     using System.Web.Mvc;
@@ -147,23 +144,6 @@ namespace GSASF.Views.Extensions
 
         #endregion
 
-
-        /// <summary>
-        /// A simple extension that mimics the the API of other MVC HtmlHelper extensions to create a submit tag.
-        /// </summary>
-        public static MvcHtmlString Submit<TViewModel>(this HtmlHelper<TViewModel> html, string value, object htmlAttributes = null)
-        {
-            var attributes = new List<string> { @"type=""submit""", @"value=""{0}""".F(value) };
-            if (htmlAttributes != null)
-            {
-                var infos = htmlAttributes.GetType().GetProperties(BindingFlags.Public | ~BindingFlags.Static);
-                foreach (var info in infos)
-                {
-                    attributes.Add(@"{0}=""{1}""".F(info.Name, info.GetValue(htmlAttributes)));
-                }
-            }
-            return new MvcHtmlString(@"<input {0} />".F(String.Join(" ", attributes)));
-        }
 
         public static MvcHtmlString LabelWith<TViewModel, TMember>(
             this HtmlHelper<TViewModel> html,

@@ -1,8 +1,8 @@
-﻿namespace MvcBootstrap.Views.Extensions
+﻿namespace MvcBootstrap.Web.Mvc.Views.Extensions
 {
+    using System;
     using System.Web.Mvc;
     using System.Web.Mvc.Html;
-    using System;
 
     using MvcBootstrap.Properties;
 

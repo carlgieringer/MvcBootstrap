@@ -78,27 +78,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controllers\BootstrapControllerBase.cs" />
-    <Compile Include="Controllers\BootstrapControllerConfig.cs" />
-    <Compile Include="Controllers\Extensions\ControllerExtensions.cs" />
-    <Compile Include="Controllers\Extensions\FlashKind.cs" />
-    <Compile Include="Controllers\ILabelSelector.cs" />
-    <Compile Include="Controllers\ILabelSelectorContainer.cs" />
-    <Compile Include="Controllers\SortOrder.cs" />
-    <Compile Include="Controllers\SortBase.cs" />
-    <Compile Include="Controllers\SortBy.cs" />
+    <Compile Include="Web\Mvc\Controllers\BootstrapControllerBase.cs" />
+    <Compile Include="Web\Mvc\Controllers\BootstrapControllerConfig.cs" />
+    <Compile Include="Web\Mvc\Controllers\Extensions\ControllerExtensions.cs" />
+    <Compile Include="Web\Mvc\Controllers\Extensions\FlashKind.cs" />
+    <Compile Include="Web\Mvc\Controllers\ILabelSelector.cs" />
+    <Compile Include="Web\Mvc\Controllers\ILabelSelectorContainer.cs" />
+    <Compile Include="Web\Mvc\Controllers\SortOrder.cs" />
+    <Compile Include="Web\Mvc\Controllers\SortBase.cs" />
+    <Compile Include="Web\Mvc\Controllers\SortBy.cs" />
     <Compile Include="Data\ConcurrentUpdateException.cs" />
     <Compile Include="Mapping\MappingHelper.cs" />
-    <Compile Include="ModelBinders\MvcBootstrapModelBinder.cs" />
+    <Compile Include="Web\Mvc\ModelBinders\MvcBootstrapModelBinder.cs" />
     <Compile Include="Models\Attributes\ForLazyNavProperty.cs" />
     <Compile Include="Models\Attributes\RequiredEagerIdAttribute.cs" />
     <Compile Include="Testing\TestHelper.cs" />
-    <Compile Include="Views\Extensions\FlashKindExtensions.cs" />
+    <Compile Include="Web\Mvc\Views\Extensions\FlashKindExtensions.cs" />
     <Compile Include="Exceptions\UnhandledEnumException.cs" />
-    <Compile Include="Controllers\HttpVerbs\HttpDelete.cs" />
-    <Compile Include="Controllers\HttpVerbs\HttpGet.cs" />
-    <Compile Include="Controllers\HttpVerbs\HttpPost.cs" />
-    <Compile Include="Controllers\HttpVerbs\HttpPut.cs" />
+    <Compile Include="Web\Mvc\Controllers\HttpVerbs\HttpDelete.cs" />
+    <Compile Include="Web\Mvc\Controllers\HttpVerbs\HttpGet.cs" />
+    <Compile Include="Web\Mvc\Controllers\HttpVerbs\HttpPost.cs" />
+    <Compile Include="Web\Mvc\Controllers\HttpVerbs\HttpPut.cs" />
     <Compile Include="Data\BootstrapRepositoryBase.cs" />
     <Compile Include="Models\EntityBase.cs" />
     <Compile Include="Data\IBootstrapRepository.cs" />
@@ -113,12 +113,12 @@
     <Compile Include="Reflection\ReflectionHelper.cs" />
     <Compile Include="ViewModels\EntityViewModelBase.cs" />
     <Compile Include="ViewModels\IEntityViewModel.cs" />
-    <Compile Include="Views\Extensions\BootstrapViewHelper.cs" />
-    <Compile Include="Views\Extensions\HtmlHelperExtensions.Input.cs" />
-    <Compile Include="Views\Extensions\ModelMetadataExtensions.cs" />
-    <Compile Include="Views\Extensions\WebViewPageExtensions.cs" />
-    <Compile Include="Views\Extensions\HtmlHelperExtensions.cs" />
-    <Compile Include="Views\Extensions\TagBuilderExtensions.cs" />
+    <Compile Include="Web\Mvc\Views\Extensions\BootstrapViewHelper.cs" />
+    <Compile Include="Web\Mvc\Views\Extensions\HtmlHelperExtensions.Input.cs" />
+    <Compile Include="Web\Mvc\Views\Extensions\ModelMetadataExtensions.cs" />
+    <Compile Include="Web\Mvc\Views\Extensions\WebViewPageExtensions.cs" />
+    <Compile Include="Web\Mvc\Views\Extensions\HtmlHelperExtensions.cs" />
+    <Compile Include="Web\Mvc\Views\Extensions\TagBuilderExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

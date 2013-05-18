@@ -1,4 +1,4 @@
-﻿namespace MvcBootstrap.Controllers.Extensions
+﻿namespace MvcBootstrap.Web.Mvc.Controllers.Extensions
 {
     public enum FlashKind
     {

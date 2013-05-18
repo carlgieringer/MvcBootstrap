@@ -1,4 +1,4 @@
-﻿namespace MvcBootstrap.Views.Extensions
+﻿namespace MvcBootstrap.Web.Mvc.Views.Extensions
 {
     using System;
     using System.Collections.Generic;

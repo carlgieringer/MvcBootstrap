@@ -1,4 +1,4 @@
-﻿namespace MvcBootstrap.Controllers
+﻿namespace MvcBootstrap.Web.Mvc.Controllers
 {
     using System;
     using System.Collections.Generic;

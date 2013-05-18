@@ -1,4 +1,4 @@
-﻿namespace MvcBootstrap.Controllers
+﻿namespace MvcBootstrap.Web.Mvc.Controllers
 {
     using MvcBootstrap.ViewModels;
 

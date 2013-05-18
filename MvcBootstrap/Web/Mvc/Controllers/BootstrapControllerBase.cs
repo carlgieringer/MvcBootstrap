@@ -1,4 +1,4 @@
-﻿namespace MvcBootstrap.Controllers
+﻿namespace MvcBootstrap.Web.Mvc.Controllers
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -6,13 +6,13 @@
 
     using AutoMapper;
 
-    using MvcBootstrap.Controllers.Extensions;
     using MvcBootstrap.Data;
     using MvcBootstrap.Exceptions;
     using MvcBootstrap.Extensions;
     using MvcBootstrap.Mapping;
     using MvcBootstrap.Models;
     using MvcBootstrap.ViewModels;
+    using MvcBootstrap.Web.Mvc.Controllers.Extensions;
 
     public abstract class BootstrapControllerBase<TEntity, TViewModel> : Controller, IViewModelLabelSelectorContainer<TViewModel>
         where TEntity : class, IEntity

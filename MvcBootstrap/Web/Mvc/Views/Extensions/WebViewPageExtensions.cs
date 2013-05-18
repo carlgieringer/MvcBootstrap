@@ -1,15 +1,14 @@
-﻿namespace MvcBootstrap.Views.Extensions
+﻿namespace MvcBootstrap.Web.Mvc.Views.Extensions
 {
     using System;
     using System.Collections.Generic;
     using System.Web.Mvc;
     using System.Web.Routing;
 
-    using MvcBootstrap.Controllers;
-    using MvcBootstrap.Controllers.Extensions;
     using MvcBootstrap.Extensions;
-    using MvcBootstrap.Models;
     using MvcBootstrap.ViewModels;
+    using MvcBootstrap.Web.Mvc.Controllers;
+    using MvcBootstrap.Web.Mvc.Controllers.Extensions;
 
     public static class WebViewPageExtensions
     {
