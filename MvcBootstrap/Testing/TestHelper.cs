@@ -1,4 +1,4 @@
-﻿namespace MvcBootstrap.Tests
+﻿namespace MvcBootstrap.Testing
 {
     using System;
 

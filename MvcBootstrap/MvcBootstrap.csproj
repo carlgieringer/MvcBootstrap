@@ -88,10 +88,11 @@
     <Compile Include="Controllers\SortBase.cs" />
     <Compile Include="Controllers\SortBy.cs" />
     <Compile Include="Data\ConcurrentUpdateException.cs" />
+    <Compile Include="Mapping\MappingHelper.cs" />
     <Compile Include="ModelBinders\MvcBootstrapModelBinder.cs" />
     <Compile Include="Models\Attributes\ForLazyNavProperty.cs" />
     <Compile Include="Models\Attributes\RequiredEagerIdAttribute.cs" />
-    <Compile Include="Tests\TestHelper.cs" />
+    <Compile Include="Testing\TestHelper.cs" />
     <Compile Include="Views\Extensions\FlashKindExtensions.cs" />
     <Compile Include="Exceptions\UnhandledEnumException.cs" />
     <Compile Include="Controllers\HttpVerbs\HttpDelete.cs" />

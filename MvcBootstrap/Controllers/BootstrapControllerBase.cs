@@ -10,6 +10,7 @@
     using MvcBootstrap.Data;
     using MvcBootstrap.Exceptions;
     using MvcBootstrap.Extensions;
+    using MvcBootstrap.Mapping;
     using MvcBootstrap.Models;
     using MvcBootstrap.ViewModels;
 
@@ -38,12 +39,8 @@
                 Sort = Sort.ByDescending(e => e.Created)
             };
 
-            this.EntityToViewModelMappingExpression = Mapper.CreateMap<TEntity, TViewModel>()
-                .ForMember(vm => vm.ConcurrentlyEdited, o => o.Ignore())
-                .ForMember(vm => vm.Id, o => o.ResolveUsing(e => e.Id == 0 ? (int?)null : e.Id));
-            this.ViewModelToEntityMappingExpression = Mapper.CreateMap<TViewModel, TEntity>()
-                .ForMember(e => e.Created, o => o.Ignore())
-                .ForMember(e => e.Modified, o => o.Ignore());
+            this.EntityToViewModelMappingExpression = MappingHelper.CreateEntityToViewModelMap<TEntity, TViewModel>();
+            this.ViewModelToEntityMappingExpression = MappingHelper.CreateViewModelToEntityMap<TViewModel, TEntity>();
         }
 
         public IViewModelLabelSelector<TViewModel> LabelSelector
