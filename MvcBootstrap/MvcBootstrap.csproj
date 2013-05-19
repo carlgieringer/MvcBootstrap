@@ -78,6 +78,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Reflection\StringHelper.cs" />
     <Compile Include="ViewModels\Attributes\HideInAttribute.cs" />
     <Compile Include="ViewModels\EntityViewModelCollection.cs" />
     <Compile Include="ViewModels\IEntityViewModelCollection.cs" />

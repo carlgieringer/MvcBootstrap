@@ -9,28 +9,10 @@
 
     using System.Text.RegularExpressions;
 
+    using MvcBootstrap.Reflection;
+
     public static class Of<T>
     {
-        // ReSharper disable StaticFieldInGenericType
-        internal static readonly Regex CamelCaseWithAcronymsWordRegex = new Regex(@"(\B[A-Z][^A-Z]+)|\B(?<=[^A-Z]+)([A-Z]+)(?![^A-Z])");
-        
-        internal static readonly string[] TitleCaseLowerCaseWords = new[]
-            {
-                "Or", "And", "Of", "On", "The", "For", "At", "A", "In", "By", "About", "To", "From", "With", "Over", "Into", "Without"
-            };
-
-        private static readonly Dictionary<string, string> TitleCaseeLowerCaseWordsSpacedToLower; 
-        // ReSharper restore StaticFieldInGenericType
-
-        static Of()
-        {
-            TitleCaseeLowerCaseWordsSpacedToLower = new Dictionary<string, string>();
-            foreach (var word in TitleCaseLowerCaseWords)
-            {
-                TitleCaseeLowerCaseWordsSpacedToLower.Add(" " + word + " ", " " + word.ToLower() + " ");
-            }
-        }
-
         /// <remarks>
         /// The benefit of this method over <see cref="NameFor{MemberT}"/> is that it will use 
         /// <see cref="DisplayNameAttribute"/> when present.  But it currently doesn't handle multiple
@@ -68,7 +50,7 @@
             }
             if (description == null)
             {
-                description = InsertSpacesBetweenCamelCaseWords(pi.Name);
+                description = StringHelper.InsertSpacesBetweenCamelCaseWords(pi.Name);
             }
 
             return description;
@@ -85,7 +67,9 @@
         {
             // TODO combine with DisplayNameFor so that DisplayName attribute is respected if present on any member.
 
-            return CodeNameFor(memberExpression).Replace('.', ' ');
+            var codeName = CodeNameFor(memberExpression);
+            var friendlyName = StringHelper.ConvertDotNotationToSpaceDelimited(codeName);
+            return friendlyName;
         }
 
         /// <returns>
@@ -94,17 +78,6 @@
         public static string CodeNameFor<MemberT>(Expression<Func<T, MemberT>> memberExpression)
         {
             return ExpressionHelper.GetExpressionText(memberExpression);
-        }
-
-        public static string InsertSpacesBetweenCamelCaseWords(string str)
-        {
-            var result = CamelCaseWithAcronymsWordRegex.Replace(str, " $1$2");
-            foreach (var kv in TitleCaseeLowerCaseWordsSpacedToLower)
-            {
-                result = result.Replace(kv.Key, kv.Value);
-            }
-
-            return result;
         }
     }
 }
