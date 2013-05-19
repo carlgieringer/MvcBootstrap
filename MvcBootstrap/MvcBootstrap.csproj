@@ -81,7 +81,6 @@
     <Compile Include="Reflection\StringHelper.cs" />
     <Compile Include="ViewModels\Attributes\HideInAttribute.cs" />
     <Compile Include="ViewModels\EntityViewModelCollection.cs" />
-    <Compile Include="ViewModels\IEntityViewModelCollection.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapAction.cs" />
     <Compile Include="ViewModels\Attributes\ShowInAttribute.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapControllerBase.cs" />

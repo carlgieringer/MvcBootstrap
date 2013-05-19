@@ -1,6 +1,7 @@
 ﻿namespace MvcBootstrap.Web.Mvc.ModelBinders
 {
     using System;
+    using System.ComponentModel;
     using System.Globalization;
     using System.Web.Mvc;
 
@@ -72,7 +73,10 @@
             return binding;
         }
 
-        protected override void BindProperty(ControllerContext controllerContext, ModelBindingContext bindingContext, System.ComponentModel.PropertyDescriptor propertyDescriptor)
+        protected override void BindProperty(
+            ControllerContext controllerContext, 
+            ModelBindingContext bindingContext, 
+            PropertyDescriptor propertyDescriptor)
         {
             if (propertyDescriptor.PropertyType == typeof(DateTime))
             {

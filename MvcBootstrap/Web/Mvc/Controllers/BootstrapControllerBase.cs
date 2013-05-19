@@ -168,9 +168,10 @@
                 return this.HttpNotFound();
             }
 
+            var entity = this.Repository.GetById(viewModel.Id.Value);
+
             if (this.ModelState.IsValid)
             {
-                var entity = this.Repository.GetById(viewModel.Id.Value);
                 Mapper.Map(viewModel, entity);
                 this.Repository.Update(entity);
 
@@ -194,6 +195,10 @@
 
                 return this.RedirectToAction("List");
             }
+
+            // I am doing this just so that my custom mapping for EntityViewModelCollection occurs
+            Mapper.Map(viewModel, entity);
+            Mapper.Map(entity, viewModel);
 
             return this.View(this.Config.UpdateViewName, viewModel);
         }
@@ -242,17 +247,17 @@
                       .ForMember(e => e.Modified, o => o.Ignore());
         }
 
-        protected IMappingExpression<ICollection<TRelatedEntity>, IEntityViewModelCollection>
+        protected IMappingExpression<ICollection<TRelatedEntity>, EntityViewModelCollection>
             CreateRelatedEntityCollectionToViewModelCollectionMap<TRelatedEntity, TRelatedViewModel>()
             where TRelatedEntity : IEntity
             where TRelatedViewModel : IEntityViewModel
         {
-            var mappingExpression = Mapper.CreateMap<ICollection<TRelatedEntity>, IEntityViewModelCollection>();
+            var mappingExpression = Mapper.CreateMap<ICollection<TRelatedEntity>, EntityViewModelCollection>();
             mappingExpression.ConvertUsing(new EntityCollectionTypeConverter<TRelatedEntity, TRelatedViewModel>(this.Config));
             return mappingExpression;
         }
 
-        public class EntityCollectionTypeConverter<TRelatedEntity, TRelatedViewModel> : ITypeConverter<ICollection<TRelatedEntity>, IEntityViewModelCollection>
+        public class EntityCollectionTypeConverter<TRelatedEntity, TRelatedViewModel> : ITypeConverter<ICollection<TRelatedEntity>, EntityViewModelCollection>
             where TRelatedViewModel : IEntityViewModel
         {
             private readonly BootstrapControllerConfig<TEntity, TViewModel> controllerConfig;
@@ -262,7 +267,7 @@
                 this.controllerConfig = controllerConfig;
             }
 
-            public IEntityViewModelCollection Convert(ResolutionContext context)
+            public EntityViewModelCollection Convert(ResolutionContext context)
             {
                 var dest = new EntityViewModelCollection();
 
@@ -278,8 +283,8 @@
                     relatedEntityChoices = Enumerable.Empty<IEntity>();
                 }
 
-                var choices = Mapper.Map<IEnumerable<TRelatedViewModel>>(relatedEntityChoices);
-                dest.Choices = choices as IEnumerable<IEntityViewModel>;
+                var choices = Mapper.Map<TRelatedViewModel[]>(relatedEntityChoices);
+                dest.Choices = choices as IEntityViewModel[];
 
                 var source = context.SourceValue as ICollection<TEntity>;
                 if (source != null)
