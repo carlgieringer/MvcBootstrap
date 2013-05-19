@@ -5,6 +5,6 @@
     public interface IViewModelLabelSelectorContainer<in TViewModel>
         where TViewModel : class, IEntityViewModel
     {
-        IViewModelLabelSelector<TViewModel> LabelSelector { get; }
+        IViewModelLabelSelector<TViewModel> ViewModelLabelSelector { get; }
     }
 }

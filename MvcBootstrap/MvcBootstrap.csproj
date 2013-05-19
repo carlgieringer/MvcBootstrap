@@ -79,20 +79,31 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ViewModels\Attributes\HideInAttribute.cs" />
+    <Compile Include="ViewModels\EntityViewModelCollection.cs" />
+    <Compile Include="ViewModels\IEntityViewModelCollection.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapAction.cs" />
     <Compile Include="ViewModels\Attributes\ShowInAttribute.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapControllerBase.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapControllerConfig.cs" />
+    <Compile Include="Web\Mvc\Controllers\FluentConfig\IRelatedEntitiesConfigFluentAdapter.cs" />
+    <Compile Include="Web\Mvc\Controllers\FluentConfig\IRelatedEntitiesConfigForMemberFluentAdapter.cs" />
+    <Compile Include="Web\Mvc\Controllers\FluentConfig\IRelatedEntitiesConfigWithSourceFluentAdapter.cs" />
+    <Compile Include="Web\Mvc\Controllers\FluentConfig\RelatedEntitiesConfigWithSourceFluentAdapter.cs" />
+    <Compile Include="Web\Mvc\Controllers\IBootstrapController.cs" />
+    <Compile Include="Web\Mvc\Controllers\IRelatedViewModelLabelSelector.cs" />
+    <Compile Include="Web\Mvc\Controllers\IRelatedViewModelLabelSelectorContainer.cs" />
     <Compile Include="Web\Mvc\Controllers\Extensions\ControllerBaseExtensions.cs" />
     <Compile Include="Web\Mvc\Controllers\Extensions\ControllerExtensions.cs" />
     <Compile Include="Web\Mvc\Controllers\Extensions\FlashKind.cs" />
-    <Compile Include="Web\Mvc\Controllers\ILabelSelector.cs" />
-    <Compile Include="Web\Mvc\Controllers\ILabelSelectorContainer.cs" />
+    <Compile Include="Web\Mvc\Controllers\IViewModelLabelSelector.cs" />
+    <Compile Include="Web\Mvc\Controllers\IViewModelLabelSelectorContainer.cs" />
+    <Compile Include="Web\Mvc\Controllers\FluentConfig\RelatedEntitiesConfigFluentAdapter.cs" />
+    <Compile Include="Web\Mvc\Controllers\FluentConfig\RelatedEntitiesConfigForMemberFluenAdapter.cs" />
+    <Compile Include="Web\Mvc\Controllers\RelatedEntityViewModelLabelSelector.cs" />
     <Compile Include="Web\Mvc\Controllers\SortOrder.cs" />
     <Compile Include="Web\Mvc\Controllers\SortBase.cs" />
     <Compile Include="Web\Mvc\Controllers\SortBy.cs" />
     <Compile Include="Data\ConcurrentUpdateException.cs" />
-    <Compile Include="Mapping\MappingHelper.cs" />
     <Compile Include="Web\Mvc\ModelBinders\MvcBootstrapModelBinder.cs" />
     <Compile Include="Models\Attributes\ForLazyNavProperty.cs" />
     <Compile Include="Models\Attributes\RequiredEagerIdAttribute.cs" />
@@ -133,6 +144,7 @@
   <ItemGroup>
     <Content Include="Readme\TODO.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

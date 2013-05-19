@@ -11,6 +11,8 @@
     using System.Web.Routing;
 
     using MvcBootstrap.Extensions;
+    using MvcBootstrap.ViewModels;
+    using MvcBootstrap.Web.Mvc.Controllers;
 
     public class BootstrapViewHelper<TModel>
     {
@@ -19,6 +21,26 @@
         public BootstrapViewHelper(WebViewPage<TModel> page)
         {
             this.page = page;
+        }
+        
+        public MvcHtmlString ViewModelLabelFor<TFor>(string propertyName, Expression<Func<TModel, TFor>> expression)
+            where TFor : IEntityViewModel
+        {
+            var viewModel = expression.Compile()(this.page.Model);
+
+            string label;
+
+            var controllerAsSelectorContainer = this.page.ViewContext.Controller as IRelatedViewModelLabelSelectorContainer;
+            if (controllerAsSelectorContainer != null)
+            {
+                label = controllerAsSelectorContainer.RelatedViewModelLabelSelector.GetRelatedViewModelLabel(propertyName, viewModel);
+            }
+            else
+            {
+                label = viewModel.ToString();
+            }
+
+            return MvcHtmlString.Create(label);
         }
 
         public MvcHtmlString ReturnLink(string format = "&laquo; Back to {0}", object htmlAttributes = null)

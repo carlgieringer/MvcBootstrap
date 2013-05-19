@@ -15,3 +15,6 @@ Handle navigation properties in optimistic concurrency errors.
 
 Separate view models for list/details
 
+Replace use of ViewData.Title with SiteViewModel.Title or something... it can conflict with ViewModel.Title!
+
+Move WebViewPageExtension methods into BootstrapViewHelper adapter (testable, consistent)

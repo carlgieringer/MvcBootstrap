@@ -63,7 +63,7 @@
                 var controllerAsSelectorContainer = page.ViewContext.Controller as IViewModelLabelSelectorContainer<TModel>;
                 if (controllerAsSelectorContainer != null)
                 {
-                    label = controllerAsSelectorContainer.LabelSelector.ViewModelLabelSelector(page.Model);
+                    label = controllerAsSelectorContainer.ViewModelLabelSelector.ViewModelLabelSelector(page.Model);
                 }
 
                 if (string.IsNullOrWhiteSpace(label) && page.Model.Id.HasValue)
