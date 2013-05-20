@@ -9,8 +9,16 @@
 
     public interface IBootstrapRepository<TEntity> where TEntity : class, IEntity
     {
+        /// <summary>
+        /// Gets the repository's entities as a queryable interface.
+        /// </summary>
         IQueryable<TEntity> Items { get; }
 
+        /// <summary>
+        /// Adds <paramref name="entity"/> to the underlying context in the modified state.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         TEntity Add(TEntity entity);
 
         /// <summary>
@@ -41,12 +49,64 @@
         /// </returns>
         TEntity Create();
 
+        /// <summary>
+        /// Gets the <see cref="TEntity"/> with <see cref="IEntityId"/> equal to <paramref name="id"/>
+        /// </summary>
+        /// <param name="id">
+        /// The key of entity to try to retrieve.
+        /// </param>
+        /// <returns>
+        /// The <see cref="TEntity"/> with <see cref="IEntity.Id"/> equal to <paramref name="id"/>, if one exists, and
+        /// null otherwise.
+        /// </returns>
         TEntity GetById(int id);
 
+        /// <summary>
+        /// Gets all of the repositories entities as an enumerable interface.
+        /// </summary>
+        /// <returns></returns>
         IEnumerable<TEntity> GetAll();
 
+        /// <summary>
+        /// Returns the <see cref="TEntity"/> matching <paramref name="predicatesLambda"/> or creates one if one is not found.
+        /// </summary>
+        /// <param name="predicatesLambda">
+        /// A predicate of the form: <code>e => e.Property1 == "SomeValue" && e.Property2 && ... && e.PropertyN == aVariable</code>
+        /// </param>
+        /// <exception cref="InvalidOperationException">
+        /// If more than one entity matches <paramref name="predicatesLambda"/> or 
+        /// if <paramref name="predicatesLambda"/> is in an invalid format.
+        /// </exception>
+        /// <returns>
+        /// An entity matching <paramref name="predicatesLambda"/>
+        /// </returns>
         TEntity GetOrCreate(Expression<Func<TEntity, bool>> predicatesLambda);
 
+        /// <summary>
+        /// Removes <paramref name="entity"/> from the context and marks it for deletion from the database
+        /// </summary>
+        /// <param name="entity"></param>
         void Delete(TEntity entity);
+
+        /// <summary>
+        /// Returns an entity if it is attached in the context, otherwise null.  It does not query the context.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        TEntity GetFromLocal(TEntity entity);
+
+        /// <summary>
+        /// Adds <paramref name="entity"/> to the underlying context in the unchanged state.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// When <paramref name="entity"/> already exists in the underlying context.
+        /// </exception>
+        /// <param name="entity">
+        /// A detached entity
+        /// </param>
+        /// <returns>
+        /// The attached entity
+        /// </returns>
+        TEntity Attach(TEntity entity);
     }
 }

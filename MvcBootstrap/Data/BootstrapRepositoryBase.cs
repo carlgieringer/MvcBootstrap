@@ -107,6 +107,7 @@
         public TEntity GetOrCreate(Expression<Func<TEntity, bool>> predicatesLambda)
         {
             var entity = this.Items.SingleOrDefault(predicatesLambda);
+
             if (entity == null)
             {
                 entity = new TEntity();
@@ -116,20 +117,34 @@
                 {
                     var andAlso = (BinaryExpression)remainingPredicates;
                     var currentPredicate = andAlso.Left;
-                    updateObjectFromPredicate(entity, currentPredicate);
+                    this.updateObjectFromPredicate(entity, currentPredicate);
                     remainingPredicates = andAlso.Right;
                 }
+
                 // remainingPredicates should contain a single predicate because it is no longer an AndAlso binary expression.
                 this.updateObjectFromPredicate(entity, remainingPredicates);
 
                 this.Context.Set<TEntity>().Add(entity);
             }
+
             return entity;
         }
 
         public void Delete(TEntity entity)
         {
             this.Context.Set<TEntity>().Remove(entity);
+        }
+
+        public TEntity GetFromLocal(TEntity entity)
+        {
+            var local = this.Context.Set<TEntity>().Local.SingleOrDefault(e => e.Id == entity.Id);
+            return local;
+        }
+
+        public TEntity Attach(TEntity entity)
+        {
+            var attached = this.Context.Set<TEntity>().Attach(entity);
+            return attached;
         }
 
         private void updateObjectFromPredicate(object entity, Expression predicate)
@@ -155,22 +170,26 @@
                         case ExpressionType.MemberAccess:
                             // http://stackoverflow.com/a/2616959/39396
                             var memberAccesss = (MemberExpression)equal.Right;
+                            
                             // Compiler has generated a closure class for the member access
                             // First get the expression where the compiler is accessing the closure's enclosed member-owner
                             var closureAccess = (MemberExpression)memberAccesss.Expression;
+                            
                             // Then get the closure itself (not sure why it is a constant expression, but it is.  I guess the C# specification would explain why.)
                             var closure = (ConstantExpression)closureAccess.Expression;
+                            
                             // Applying the closureAccess to the closure yields the enclosed member-owner, which actually owns the value we're interested in.
                             var memberOwner = ((FieldInfo)closureAccess.Member).GetValue(closure.Value);
+                            
                             // Applying the memberAccess to the memberOwner yields the value.
                             value = ((PropertyInfo)memberAccesss.Member).GetValue(memberOwner, null);
+                            
                             // This technique has not been tested against multiple levels of member access, e.g., x => x.Name == Grandparent.Parent.Name.
                             break;
 
                         default:
-                            throw new InvalidOperationException(
-                                String.Format(
-                                    "{0} is not supported on the right side of a predicate.", equal.Right.NodeType));
+                            var messageFormat = "{0} is not supported on the right side of a predicate.";
+                            throw new InvalidOperationException(string.Format(messageFormat, equal.Right.NodeType));
                     }
 
                     var memberName = memberExpression.Member.Name;
@@ -178,8 +197,9 @@
                     break;
 
                 default:
-                    throw new InvalidOperationException(
-                        "Only equality predicates AndAlso'd together are supported (e.g.: x => x.Name == other.Name && x.Value == other.Value).");
+                    var message = "Only equality predicates AndAlso'd together are supported "
+                                  + "(e.g.: x => x.Name == other.Name && x.Value == other.Value).";
+                    throw new InvalidOperationException(message);
             }
         }
     }

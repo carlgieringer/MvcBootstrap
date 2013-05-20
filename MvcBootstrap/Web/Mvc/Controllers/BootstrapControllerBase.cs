@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Data.Entity;
     using System.Data.Entity.Validation;
     using System.Linq;
@@ -75,14 +76,6 @@
         }
 
         public BootstrapControllerConfig<TEntity, TViewModel> Config { get; private set; }
-
-        private BootstrapRepositoryBase<TEntity> RepositoryInternal
-        {
-            get
-            {
-                return this.Repository as BootstrapRepositoryBase<TEntity>;
-            }
-        } 
 
         #endregion
 
@@ -271,10 +264,9 @@
             where TAnyViewModel : IEntityViewModel
         {
 
-            return
-                Mapper.CreateMap<TAnyEntity, TAnyViewModel>()
-                      .ForMember(vm => vm.ConcurrentlyEdited, o => o.Ignore())
-                      .ForMember(vm => vm.Id, o => o.ResolveUsing(e => e.Id == 0 ? (int?)null : e.Id));
+            return Mapper.CreateMap<TAnyEntity, TAnyViewModel>()
+                .ForMember(vm => vm.ConcurrentlyEdited, o => o.Ignore())
+                .ForMember(vm => vm.Id, o => o.ResolveUsing(e => e.Id == 0 ? (int?)null : e.Id));
         }
 
         protected 
@@ -283,23 +275,23 @@
             where TAnyEntity : IEntity 
             where TAnyViewModel : IEntityViewModel
         {
-            return
-                Mapper.CreateMap<TAnyViewModel, TAnyEntity>()
-                      .ForMember(e => e.Created, o => o.Ignore())
-                      .ForMember(e => e.Modified, o => o.Ignore());
+            return Mapper.CreateMap<TAnyViewModel, TAnyEntity>()
+                .ForMember(e => e.Created, o => o.Ignore())
+                .ForMember(e => e.Modified, o => o.Ignore());
         }
 
         /// <summary>
         /// Creates a mapping from a collection of entities to a collection of view models where the view model collection requires
         /// the mapping to setup information supporting editing membership of entities in the collection.
         /// </summary>
+        /// <param name="roleRepository"></param>
         /// <typeparam name="TRelatedEntity">The type of the related entity</typeparam>
         /// <typeparam name="TRelatedViewModel">The type of the related entity's view model</typeparam>
         /// <returns>
         /// A mapping configuration
         /// </returns>
         protected 
-            IMappingExpression<ICollection<TRelatedEntity>, ChoiceCollection<TRelatedViewModel>>
+            IMappingExpression<ICollection<TRelatedEntity>, ChoiceCollection<TRelatedViewModel>> 
             CreateRelatedEntityCollectionToChoiceCollectionMap<TRelatedEntity, TRelatedViewModel>()
             where TRelatedEntity : IEntity
             where TRelatedViewModel : IEntityViewModel
@@ -326,13 +318,13 @@
         /// </returns>
         protected 
             IMappingExpression<ChoiceCollection<TRelatedViewModel>, ICollection<TRelatedEntity>>
-            CreateChoiceCollectionToEntityCollectionMap<TRelatedViewModel, TRelatedEntity>()
+            CreateChoiceCollectionToEntityCollectionMap<TRelatedViewModel, TRelatedEntity>(IBootstrapRepository<TRelatedEntity> repository)
             where TRelatedViewModel : IEntityViewModel
             where TRelatedEntity : class, IEntity, new()
         {
             var mappingExpression = Mapper.CreateMap<ChoiceCollection<TRelatedViewModel>, ICollection<TRelatedEntity>>();
             var converter = 
-                new ChoiceCollectionToEntityCollectionConverter<TRelatedViewModel, TRelatedEntity>(this.RepositoryInternal.Context);
+                new ChoiceCollectionToEntityCollectionConverter<TRelatedViewModel, TRelatedEntity>(repository);
             mappingExpression.ConvertUsing(converter);
             return mappingExpression;
         }
@@ -416,29 +408,23 @@
             where TRelatedViewModel : IEntityViewModel
             where TRelatedEntity : class, IEntity, new()
         {
-            private readonly DbContext dbContext;
+            private readonly IBootstrapRepository<TRelatedEntity> repository;
 
-            public ChoiceCollectionToEntityCollectionConverter(DbContext context)
+            public ChoiceCollectionToEntityCollectionConverter(IBootstrapRepository<TRelatedEntity> repository)
             {
-                this.dbContext = context;
+                this.repository = repository;
             }
 
             public ICollection<TRelatedEntity> Convert(ResolutionContext context)
             {
-                var entityCollection = context.DestinationValue as ICollection<TRelatedEntity>;
-                if (entityCollection == null)
-                {
-                    throw new MvcBootstrapException("Mapping error: entity relation collection was not convertable to ICollection<TRelatedEntity>.");
-                }
+                var entityCollection = context.DestinationValue as ICollection<TRelatedEntity> ??
+                    new Collection<TRelatedEntity>();
 
                 // Start with an empty collection so that the only ones in it at the end are those that were mapped
                 entityCollection.Clear();
 
-                var viewModelCollection = context.SourceValue as ChoiceCollection<TRelatedViewModel>;
-                if (viewModelCollection == null)
-                {
-                    throw new MvcBootstrapException("View model collection was not convertible to EntityViewModelChoiceCollection");
-                }
+                var viewModelCollection = context.SourceValue as ChoiceCollection<TRelatedViewModel> ??
+                    new ChoiceCollection<TRelatedViewModel>();
 
                 foreach (var viewModel in viewModelCollection)
                 {
@@ -448,10 +434,10 @@
                         continue;
                     }
                     
-                    var attachedEntity = this.dbContext.Set<TRelatedEntity>().Local.SingleOrDefault(e => e.Id == entity.Id);
+                    var attachedEntity = this.repository.GetFromLocal(entity);
                     entity = attachedEntity ?? 
                         // .Attach puts the DbEntityEntry in the Unchanged state, so properties on entity will not be persisted due to the Attach
-                        this.dbContext.Set<TRelatedEntity>().Attach(entity);
+                        this.repository.Attach(entity);
 
                     // Adding the entity to a collection that is a navigation property will be picked up by the context
                     entityCollection.Add(entity);
