@@ -5,7 +5,7 @@
 
     public static class StringHelper
     {
-        internal static readonly Regex CamelCaseWithAcronymsWordRegex = new Regex(@"(\B[A-Z][^A-Z]+)|\B(?<=[^A-Z]+)([A-Z]+)(?![^A-Z])");
+        private static readonly Regex CamelCaseWithAcronymsWordRegex = new Regex(@"(\B[A-Z][^A-Z]+)|\B(?<=[^A-Z]+)([A-Z]+)(?![^A-Z])");
         
         internal static readonly string[] TitleCaseLowerCaseWords = new[]
             {

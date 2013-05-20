@@ -78,9 +78,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\Extensions\DbContextExtensions.cs" />
     <Compile Include="Reflection\StringHelper.cs" />
+    <Compile Include="Util\HashCodeHelper.cs" />
     <Compile Include="ViewModels\Attributes\HideInAttribute.cs" />
-    <Compile Include="ViewModels\EntityViewModelCollection.cs" />
+    <Compile Include="ViewModels\IChoiceCollection.cs" />
+    <Compile Include="ViewModels\ChoiceCollection.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapAction.cs" />
     <Compile Include="ViewModels\Attributes\ShowInAttribute.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapControllerBase.cs" />
@@ -104,7 +107,7 @@
     <Compile Include="Web\Mvc\Controllers\SortBase.cs" />
     <Compile Include="Web\Mvc\Controllers\SortBy.cs" />
     <Compile Include="Data\ConcurrentUpdateException.cs" />
-    <Compile Include="Web\Mvc\ModelBinders\MvcBootstrapModelBinder.cs" />
+    <Compile Include="Web\Mvc\ModelBinding\MvcBootstrapModelBinder.cs" />
     <Compile Include="Models\Attributes\ForLazyNavProperty.cs" />
     <Compile Include="Models\Attributes\RequiredEagerIdAttribute.cs" />
     <Compile Include="Testing\TestHelper.cs" />

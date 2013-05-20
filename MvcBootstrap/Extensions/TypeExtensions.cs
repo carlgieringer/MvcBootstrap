@@ -3,11 +3,13 @@
     using System;
     using System.Linq;
 
+    using MvcBootstrap.Reflection;
+
     public static class TypeExtensions
     {
         public static string Description(this Type type)
         {
-            return type.Name;
+            return StringHelper.InsertSpacesBetweenCamelCaseWords(type.Name);
         }
 
         public static bool IsAssignableTo(this Type type, Type other)

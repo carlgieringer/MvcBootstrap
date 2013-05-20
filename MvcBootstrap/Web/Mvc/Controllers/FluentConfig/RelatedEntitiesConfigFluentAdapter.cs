@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Linq.Expressions;
     using System.Web.Mvc;
 
@@ -17,7 +18,7 @@
             this.config = config;
         }
 
-        public IRelatedEntitiesConfigForMemberFluentAdapter<TEntity> For<TRelated>(Expression<Func<TEntity, TRelated>> memberExpression)
+        public IRelatedEntitiesConfigForMemberFluentAdapter<TEntity> Relation<TRelated>(Expression<Func<TEntity, TRelated>> memberExpression)
         {
             Type relatedType = typeof(TRelated);
 

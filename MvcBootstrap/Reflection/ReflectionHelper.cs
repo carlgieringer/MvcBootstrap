@@ -2,6 +2,8 @@
 namespace MvcBootstrap.Reflection
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
 
     using MvcBootstrap.Extensions;
@@ -49,6 +51,24 @@ namespace MvcBootstrap.Reflection
         {
             var pi = GetPropertyInfo<T>(obj, propertyName);
             return pi.GetValue(obj);
+        }
+
+        public static Type ExtractGenericInterface(Type type, Type targetInterfaceType)
+        {
+            if (MatchesGenericType(type, targetInterfaceType))
+            {
+                return type;
+            }
+
+            var typeInterfaces = type.GetInterfaces();
+            return typeInterfaces.FirstOrDefault(interfaceType => MatchesGenericType(interfaceType, targetInterfaceType));
+        }
+
+        private static bool MatchesGenericType(Type type, Type matchType)
+        {
+            return 
+                type.IsGenericType && 
+                type.GetGenericTypeDefinition() == matchType;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace MvcBootstrap.Web.Mvc.Controllers.FluentConfig
             this.memberName = memberName;
         }
 
-        public void WithLabel<TRelatedViewModel>(Expression<Func<TRelatedViewModel, string>> labelSelector) 
+        public void UsesLabel<TRelatedViewModel>(Expression<Func<TRelatedViewModel, string>> labelSelector) 
             where TRelatedViewModel : IEntityViewModel
         {
             this.config.RelatedEntityViewModelLabelSelectorByMemberName[this.memberName] = labelSelector;

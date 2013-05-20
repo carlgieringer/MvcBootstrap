@@ -2,11 +2,13 @@ namespace MvcBootstrap.Web.Mvc.Controllers.FluentConfig
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
 
     using MvcBootstrap.Models;
 
-    public interface IRelatedEntitiesConfigForMemberFluentAdapter<TEntity>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public interface IRelatedEntitiesConfigForMemberFluentAdapter<TEntity> : IFluentAdapter
     {
-        IRelatedEntitiesConfigWithSourceFluentAdapter UseSource(Func<TEntity, IEnumerable<IEntity>> relatedEntitiesExpression);
+        IRelatedEntitiesConfigWithSourceFluentAdapter HasChoices(Func<TEntity, IEnumerable<IEntity>> relatedEntitiesExpression);
     }
 }

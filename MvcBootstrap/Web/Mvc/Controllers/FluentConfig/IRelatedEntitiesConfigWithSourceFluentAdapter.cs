@@ -1,12 +1,14 @@
 namespace MvcBootstrap.Web.Mvc.Controllers.FluentConfig
 {
     using System;
+    using System.ComponentModel;
     using System.Linq.Expressions;
 
     using MvcBootstrap.ViewModels;
 
-    public interface IRelatedEntitiesConfigWithSourceFluentAdapter
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public interface IRelatedEntitiesConfigWithSourceFluentAdapter : IFluentAdapter
     {
-        void WithLabel<TRelatedViewModel>(Expression<Func<TRelatedViewModel, string>> labelSelector) where TRelatedViewModel : IEntityViewModel;
+        void UsesLabel<TRelatedViewModel>(Expression<Func<TRelatedViewModel, string>> labelSelector) where TRelatedViewModel : IEntityViewModel;
     }
 }

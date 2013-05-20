@@ -20,7 +20,7 @@
             this.Context = context;
         }
 
-        public DbContext Context { get; set; }
+        internal DbContext Context { get; private set; }
 
         public virtual IQueryable<TEntity> Items
         {
@@ -71,6 +71,7 @@
             // Otherwise the context knows that the Timestamp has been modified in the context
             entry.OriginalValues["Timestamp"] = entity.Timestamp;
 
+            // Update the context entry to reflect the values passed in with the parameter
             entry.CurrentValues.SetValues(entity);
             
             attached.Modified = DateTime.Now;

@@ -18,3 +18,7 @@ Separate view models for list/details
 Replace use of ViewData.Title with SiteViewModel.Title or something... it can conflict with ViewModel.Title!
 
 Move WebViewPageExtension methods into BootstrapViewHelper adapter (testable, consistent)
+
+Make Delete a view (too many times I worry about deleting the entity (or add Undo!?)
+
+Edit Employee, submit with validation error (blank name), then cancel.  The Flash error appears on the Read page too.
