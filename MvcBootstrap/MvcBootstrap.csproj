@@ -82,8 +82,10 @@
     <Compile Include="Reflection\StringHelper.cs" />
     <Compile Include="Util\HashCodeHelper.cs" />
     <Compile Include="ViewModels\Attributes\HideInAttribute.cs" />
-    <Compile Include="ViewModels\IChoiceCollection.cs" />
-    <Compile Include="ViewModels\ChoiceCollection.cs" />
+    <Compile Include="ViewModels\Choice.cs" />
+    <Compile Include="ViewModels\IChoice.cs" />
+    <Compile Include="ViewModels\IChoices.cs" />
+    <Compile Include="ViewModels\Choices.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapAction.cs" />
     <Compile Include="ViewModels\Attributes\ShowInAttribute.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapControllerBase.cs" />

@@ -11,6 +11,7 @@
     using System.Web.Mvc;
 
     using MvcBootstrap.Extensions;
+    using MvcBootstrap.Properties;
     using MvcBootstrap.Reflection;
     using MvcBootstrap.ViewModels;
 
@@ -43,12 +44,15 @@
                 bindingModelType.IsAssignableTo(typeof(IEntityViewModel)) && 
                 bindingContext.ModelMetadata.ContainerType.IsAssignableTo(typeof(IEntityViewModel)))
             {
-                //binding = base.BindModel(controllerContext, bindingContext);
                 binding = BindEntityViewModel(bindingContext);
             }
-            else if (bindingModelType.IsConstructedGenericTypeFor(typeof(ChoiceCollection<>)))
+            else if (bindingModelType.IsConstructedGenericTypeFor(typeof(Choice<>)))
             {
-                binding = BindEntityViewModelCollection(bindingContext);
+                binding = BindChoice(bindingContext);
+            }
+            else if (bindingModelType.IsConstructedGenericTypeFor(typeof(Choices<>)))
+            {
+                binding = BindChoices(bindingContext);
             }
             else
             {
@@ -78,33 +82,86 @@
                 }
 
                 var viewModel = Activator.CreateInstance(bindingContext.ModelType) as IEntityViewModel;
-                viewModel.Id = id;
-                binding = viewModel;
+                if (viewModel != null)
+                {
+                    viewModel.Id = id;
+                    binding = viewModel;
+                }
             }
 
             return binding;
         }
 
-        private static object BindEntityViewModelCollection(ModelBindingContext bindingContext)
+        private static object BindChoice(ModelBindingContext bindingContext)
         {
-            object binding = null;
+            Type choiceType = bindingContext.ModelType.GetGenericArguments().FirstOrDefault();
+            if (choiceType == null)
+            {
+                return null;
+            }
 
+            var provider = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
+
+            string attemptedValue = provider != null ?
+                provider.AttemptedValue :
+                null;
+
+            var choice = bindingContext.Model ??
+                Activator.CreateInstance(typeof(Choice<>).MakeGenericType(choiceType));
+
+            if (!string.IsNullOrEmpty(attemptedValue))
+            {
+                int id = default(int);
+                bool success = false;
+
+                try
+                {
+                    id = int.Parse(attemptedValue);
+                    success = true;
+                }
+                catch (FormatException ex)
+                {
+                    bindingContext.ModelState.AddModelError(bindingContext.ModelName, ex);
+                }
+
+                if (success)
+                {
+                    var viewModel = Activator.CreateInstance(choiceType) as IEntityViewModel;
+                    if (viewModel != null)
+                    {
+                        viewModel.Id = id;
+                    }
+
+                    GenericHelpers.SetChoiceSelection(choiceType, choice, viewModel);
+                }
+            }
+
+            return choice;
+        }
+
+        private static object BindChoices(ModelBindingContext bindingContext)
+        {
             // By convention we append .Id in the html inputs to emphasize that we are referring to entities by their Id.
             string valueKey = string.Format("{0}.Id", bindingContext.ModelName);
-            string attemptedValuesString = bindingContext.ValueProvider.GetValue(valueKey).AttemptedValue;
+            var provider = bindingContext.ValueProvider.GetValue(valueKey);
+
+            string attemptedValuesString = provider != null ?
+                provider.AttemptedValue :
+                null;
+
+            Type choicesType = bindingContext.ModelType.GetGenericArguments().FirstOrDefault();
+
+            if (choicesType == null)
+            {
+                return null;
+            }
+
+            var choices = bindingContext.Model ??
+                Activator.CreateInstance(typeof(Choices<>).MakeGenericType(choicesType));
 
             if (!string.IsNullOrEmpty(attemptedValuesString))
             {
-                Type enumerableType = ReflectionHelper.ExtractGenericInterface(bindingContext.ModelType, typeof(IEnumerable<>));
-
-                if (enumerableType == null)
-                {
-                    return binding;
-                }
-
-                Type elementType = enumerableType.GetGenericArguments().First();
-
-                var viewModelsList = new List<object>();
+                var viewModelsList = Activator.CreateInstance(typeof(List<>).MakeGenericType(choicesType)) as IList;
 
                 // When the HTTP params contain more than one key-value pair with the same key, they are joined with commas
                 var attemptedValues = attemptedValuesString.Split(',');
@@ -126,29 +183,57 @@
 
                     if (success)
                     {
-                        var viewModel = Activator.CreateInstance(elementType) as IEntityViewModel;
+                        var viewModel = Activator.CreateInstance(choicesType) as IEntityViewModel;
                         viewModel.Id = id;
                         viewModelsList.Add(viewModel);
                     }
                 }
 
-                // The Microsoft MVC implementations for binding collections not only return the collection, but also
-                // try to clear and replace the elements inside bindingContext.Model
-                object collection = bindingContext.Model;
-                CollectionHelpers.ReplaceCollectionContents(elementType, collection, viewModelsList);
-                binding = collection;
+                GenericHelpers.SetChoicesSelection(choicesType, choices, viewModelsList);
             }
 
-            return binding;
+            return choices;
         }
 
-        private static class CollectionHelpers
+        private static class GenericHelpers
         {
-            private static readonly MethodInfo ReplaceCollectionContentsMethod = typeof(CollectionHelpers)
+            private static readonly MethodInfo SetChoiceSelectionMethod = typeof(GenericHelpers)
+                .GetMethod("SetChoiceSelectionImpl", BindingFlags.Static | BindingFlags.NonPublic);
+
+            private static readonly MethodInfo SetChoicesSelectionMethod = typeof(GenericHelpers)
+                .GetMethod("SetChoicesSelectionImpl", BindingFlags.Static | BindingFlags.NonPublic);
+
+            private static readonly MethodInfo ReplaceCollectionContentsMethod = typeof(GenericHelpers)
                 .GetMethod("ReplaceCollectionImpl", BindingFlags.Static | BindingFlags.NonPublic);
 
-            private static readonly MethodInfo ReplaceDictionaryContentsMethod = typeof(CollectionHelpers)
+            private static readonly MethodInfo ReplaceDictionaryContentsMethod = typeof(GenericHelpers)
                 .GetMethod("ReplaceDictionaryImpl", BindingFlags.Static | BindingFlags.NonPublic);
+
+            [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+            public static void SetChoiceSelection(Type choiceType, object choice, object selection)
+            {
+                MethodInfo targetMethod = SetChoiceSelectionMethod.MakeGenericMethod(choiceType);
+                targetMethod.Invoke(null, new object[] { choice, selection });
+            }
+
+            private static void SetChoiceSelectionImpl<T>(Choice<T> choice, T selection) 
+                where T : class, IEntityViewModel
+            {
+                choice.Selection = selection;
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+            public static void SetChoicesSelection(Type choiceType, object choices, object selection)
+            {
+                MethodInfo targetMethod = SetChoicesSelectionMethod.MakeGenericMethod(choiceType);
+                targetMethod.Invoke(null, new object[] { choices, selection });
+            }
+
+            private static void SetChoicesSelectionImpl<T>(Choices<T> choice, IEnumerable<T> selections) 
+                where T : class, IEntityViewModel
+            {
+                choice.Selections = selections;
+            }
 
             [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
             public static void ReplaceCollectionContents(Type collectionType, object collection, object newContents)

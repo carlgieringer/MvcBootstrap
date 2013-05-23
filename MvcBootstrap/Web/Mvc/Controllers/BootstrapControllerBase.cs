@@ -280,6 +280,31 @@
                 .ForMember(e => e.Modified, o => o.Ignore());
         }
 
+        protected
+            IMappingExpression<TRelatedEntity, Choice<TRelatedViewModel>>
+            CreateRelatedEntityToChoiceMap<TRelatedEntity, TRelatedViewModel>()
+            where TRelatedViewModel : class, IEntityViewModel
+            where TRelatedEntity : class, IEntity
+        {
+            var mappingExpression = Mapper.CreateMap<TRelatedEntity, Choice<TRelatedViewModel>>();
+            var converter = new EntityToChoiceConverter<TRelatedEntity, TRelatedViewModel>(this);
+            mappingExpression.ConvertUsing(converter);
+            return mappingExpression;
+        }
+
+        protected
+            IMappingExpression<Choice<TRelatedViewModel>, TRelatedEntity>
+            CreateChoiceToEntityMap<TRelatedViewModel, TRelatedEntity>(IBootstrapRepository<TRelatedEntity> repository)
+            where TRelatedViewModel : class, IEntityViewModel
+            where TRelatedEntity : class, IEntity, new()
+        {
+            var mappingExpression = Mapper.CreateMap<Choice<TRelatedViewModel>, TRelatedEntity>();
+            var converter =
+                new ChoiceToEntityConverter<TRelatedViewModel, TRelatedEntity>(repository);
+            mappingExpression.ConvertUsing(converter);
+            return mappingExpression;
+        }
+
         /// <summary>
         /// Creates a mapping from a collection of entities to a collection of view models where the view model collection requires
         /// the mapping to setup information supporting editing membership of entities in the collection.
@@ -291,13 +316,13 @@
         /// A mapping configuration
         /// </returns>
         protected 
-            IMappingExpression<ICollection<TRelatedEntity>, ChoiceCollection<TRelatedViewModel>> 
+            IMappingExpression<ICollection<TRelatedEntity>, Choices<TRelatedViewModel>> 
             CreateRelatedEntityCollectionToChoiceCollectionMap<TRelatedEntity, TRelatedViewModel>()
             where TRelatedEntity : IEntity
             where TRelatedViewModel : IEntityViewModel
         {
-            var mappingExpression = Mapper.CreateMap<ICollection<TRelatedEntity>, ChoiceCollection<TRelatedViewModel>>();
-            var converter = new EntityCollectionToChoiceCollectionConverter<TRelatedEntity, TRelatedViewModel>(this.Config);
+            var mappingExpression = Mapper.CreateMap<ICollection<TRelatedEntity>, Choices<TRelatedViewModel>>();
+            var converter = new EntityCollectionToChoicesConverter<TRelatedEntity, TRelatedViewModel>(this);
             mappingExpression.ConvertUsing(converter);
             return mappingExpression;
         }
@@ -317,16 +342,98 @@
         /// A mapping configuration
         /// </returns>
         protected 
-            IMappingExpression<ChoiceCollection<TRelatedViewModel>, ICollection<TRelatedEntity>>
+            IMappingExpression<Choices<TRelatedViewModel>, ICollection<TRelatedEntity>>
             CreateChoiceCollectionToEntityCollectionMap<TRelatedViewModel, TRelatedEntity>(IBootstrapRepository<TRelatedEntity> repository)
             where TRelatedViewModel : IEntityViewModel
             where TRelatedEntity : class, IEntity, new()
         {
-            var mappingExpression = Mapper.CreateMap<ChoiceCollection<TRelatedViewModel>, ICollection<TRelatedEntity>>();
+            var mappingExpression = Mapper.CreateMap<Choices<TRelatedViewModel>, ICollection<TRelatedEntity>>();
             var converter = 
-                new ChoiceCollectionToEntityCollectionConverter<TRelatedViewModel, TRelatedEntity>(repository);
+                new ChoicesToEntityCollectionConverter<TRelatedViewModel, TRelatedEntity>(repository);
             mappingExpression.ConvertUsing(converter);
             return mappingExpression;
+        }
+
+        private class EntityToChoiceConverter<TRelatedEntity, TRelatedViewModel> :
+            ITypeConverter<TRelatedEntity, Choice<TRelatedViewModel>>
+            where TRelatedViewModel : class, IEntityViewModel
+            where TRelatedEntity : class
+        {
+            private readonly BootstrapControllerBase<TEntity, TViewModel> controller;
+
+            public EntityToChoiceConverter(BootstrapControllerBase<TEntity, TViewModel> controller)
+            {
+                this.controller = controller;
+            }
+
+            public Choice<TRelatedViewModel> Convert(ResolutionContext context)
+            {
+                var choice = new Choice<TRelatedViewModel>();
+
+                var entity = context.SourceValue as TRelatedEntity;
+                choice.Selection = Mapper.Map<TRelatedViewModel>(entity);
+
+                choice.Options = IsRecursiveConversion(context) ?
+                    Enumerable.Empty<TRelatedViewModel>() :
+                    this.controller.GetChoiceOptions<TRelatedViewModel>(context);
+
+                return choice;
+            }
+
+            private static bool IsRecursiveConversion(ResolutionContext context)
+            {
+                // Prevent infinite recursion
+                var parentContext = context.Parent;
+                while (parentContext != null)
+                {
+                    if (parentContext.DestinationType.IsConstructedGenericTypeFor(typeof(Choice<>), typeof(TRelatedViewModel)) &&
+                        parentContext.MemberName == context.MemberName)
+                    {
+                        return true;
+                    }
+
+                    parentContext = parentContext.Parent;
+                }
+
+                return false;
+            }
+        }
+
+        private class ChoiceToEntityConverter<TRelatedViewModel, TRelatedEntity> :
+            ITypeConverter<Choice<TRelatedViewModel>, TRelatedEntity>
+            where TRelatedViewModel : class, IEntityViewModel
+            where TRelatedEntity : class, IEntity, new()
+        {
+            private readonly IBootstrapRepository<TRelatedEntity> repository;
+
+            public ChoiceToEntityConverter(IBootstrapRepository<TRelatedEntity> repository)
+            {
+                this.repository = repository;
+            }
+
+            public TRelatedEntity Convert(ResolutionContext context)
+            {
+                var entity = context.DestinationValue as TRelatedEntity;
+
+                var choice = context.SourceValue as Choice<TRelatedViewModel> ??
+                    new Choice<TRelatedViewModel>();
+
+                var selectedEntity = Mapper.Map<TRelatedEntity>(choice.Selection);
+                if (entity != null && selectedEntity == null)
+                {
+                    entity = null;
+                }
+                else if ((entity == null && selectedEntity != null) || 
+                    (entity != null && entity.Id != selectedEntity.Id))
+                {
+                    var attachedEntity = this.repository.GetFromLocal(selectedEntity);
+                    entity = attachedEntity ??
+                        // .Attach puts the DbEntityEntry in the Unchanged state, so properties on entity will not be persisted due to the Attach
+                        this.repository.Attach(selectedEntity);
+                }
+
+                return entity;
+            }
         }
 
         /// <summary>
@@ -334,83 +441,46 @@
         /// information supporting editing membership in the collection.
         /// </summary>
         /// <remarks>
-        /// Specifically, converts a <see cref="ICollection{TRelatedEnity}"/> to a <see cref="ChoiceCollection{TRelatedViewModel}"/>. 
-        /// This view model collection includes <see cref="ChoiceCollection{TViewModel}.Choices"/> which provides the view models
-        /// of entities eligible to participate in the relation.  UI elements should display the <see cref="ChoiceCollection{TRelatedViewModel}"/>
+        /// Specifically, converts a <see cref="ICollection{TRelatedEnity}"/> to a <see cref="Choices{TRelatedViewModel}"/>. 
+        /// This view model collection includes <see cref="Choices{TViewModel}.Options"/> which provides the view models
+        /// of entities eligible to participate in the relation.  UI elements should display the <see cref="Choices{TRelatedViewModel}"/>
         /// so as to allow multi-select (e.g., in an HTML tag like <![CDATA[<select multiple>...</select>]]>.
         /// </remarks>
         /// <typeparam name="TRelatedEntity">The type of the related entity</typeparam>
         /// <typeparam name="TRelatedViewModel">The type of the related entity's view model</typeparam>
-        private class EntityCollectionToChoiceCollectionConverter<TRelatedEntity, TRelatedViewModel> : 
-            ITypeConverter<ICollection<TRelatedEntity>, ChoiceCollection<TRelatedViewModel>>
+        private class 
+            EntityCollectionToChoicesConverter<TRelatedEntity, TRelatedViewModel> : 
+            ITypeConverter<ICollection<TRelatedEntity>, Choices<TRelatedViewModel>>
             where TRelatedViewModel : IEntityViewModel
         {
-            private readonly BootstrapControllerConfig<TEntity, TViewModel> controllerConfig;
+            private readonly BootstrapControllerBase<TEntity, TViewModel> controller;
 
-            public EntityCollectionToChoiceCollectionConverter(BootstrapControllerConfig<TEntity, TViewModel> controllerConfig)
+            public EntityCollectionToChoicesConverter(BootstrapControllerBase<TEntity, TViewModel> controller)
             {
-                this.controllerConfig = controllerConfig;
+                this.controller = controller;
             }
 
-            public ChoiceCollection<TRelatedViewModel> Convert(ResolutionContext context)
+            public Choices<TRelatedViewModel> Convert(ResolutionContext context)
             {
-                var viewModelCollection = new ChoiceCollection<TRelatedViewModel>();
+                var choiceCollection = new Choices<TRelatedViewModel>();
 
                 var entityCollection = context.SourceValue as ICollection<TRelatedEntity>;
-                viewModelCollection = MapEntityCollectionContentsToViewModelCollection(entityCollection, viewModelCollection);
+                choiceCollection.Selections = Mapper.Map<IEnumerable<TRelatedViewModel>>(entityCollection);
 
-                viewModelCollection.Choices = this.GetViewModelChoices(context);
+                choiceCollection.Options = this.controller.GetChoiceOptions<TRelatedViewModel>(context);
 
-                return viewModelCollection;
-            }
-
-            private static 
-                ChoiceCollection<TRelatedViewModel> 
-                MapEntityCollectionContentsToViewModelCollection(
-                    ICollection<TRelatedEntity> entityCollection, 
-                    ChoiceCollection<TRelatedViewModel> viewModelCollection)
-            {
-                if (entityCollection != null)
-                {
-                    foreach (var entity in entityCollection)
-                    {
-                        viewModelCollection.Add(Mapper.Map<TRelatedViewModel>(entity));
-                    }
-                }
-
-                return viewModelCollection;
-            }
-
-            private IEnumerable<IEntityViewModel> GetViewModelChoices(ResolutionContext context)
-            {
-                IEnumerable<IEntity> entityChoices;
-
-                Func<TEntity, IEnumerable<IEntity>> relatedEntityChoicesSelector;
-                if (this.controllerConfig.RelatedEntityChoicesSelectorByMemberName.TryGetValue(
-                    context.MemberName, 
-                    out relatedEntityChoicesSelector))
-                {
-                    var entity = context.Parent.SourceValue as TEntity;
-                    entityChoices = relatedEntityChoicesSelector(entity);
-                }
-                else
-                {
-                    entityChoices = Enumerable.Empty<IEntity>();
-                }
-
-                var viewModelChoices = Mapper.Map<IEnumerable<TRelatedViewModel>>(entityChoices);
-                return viewModelChoices.Cast<IEntityViewModel>().AsEnumerable();
+                return choiceCollection;
             }
         }
         
-        private class ChoiceCollectionToEntityCollectionConverter<TRelatedViewModel, TRelatedEntity> :
-            ITypeConverter<ChoiceCollection<TRelatedViewModel>, ICollection<TRelatedEntity>>
+        private class ChoicesToEntityCollectionConverter<TRelatedViewModel, TRelatedEntity> :
+            ITypeConverter<Choices<TRelatedViewModel>, ICollection<TRelatedEntity>>
             where TRelatedViewModel : IEntityViewModel
             where TRelatedEntity : class, IEntity, new()
         {
             private readonly IBootstrapRepository<TRelatedEntity> repository;
 
-            public ChoiceCollectionToEntityCollectionConverter(IBootstrapRepository<TRelatedEntity> repository)
+            public ChoicesToEntityCollectionConverter(IBootstrapRepository<TRelatedEntity> repository)
             {
                 this.repository = repository;
             }
@@ -423,10 +493,10 @@
                 // Start with an empty collection so that the only ones in it at the end are those that were mapped
                 entityCollection.Clear();
 
-                var viewModelCollection = context.SourceValue as ChoiceCollection<TRelatedViewModel> ??
-                    new ChoiceCollection<TRelatedViewModel>();
+                var viewModelCollection = context.SourceValue as Choices<TRelatedViewModel> ??
+                    new Choices<TRelatedViewModel>();
 
-                foreach (var viewModel in viewModelCollection)
+                foreach (var viewModel in viewModelCollection.Selections)
                 {
                     var entity = Mapper.Map<TRelatedEntity>(viewModel);
                     if (entityCollection.Any(e => e.Id == entity.Id))
@@ -445,6 +515,27 @@
 
                 return entityCollection;
             }
+        }
+
+        private IEnumerable<TRelatedViewModel> GetChoiceOptions<TRelatedViewModel>(ResolutionContext context)
+        {
+            IEnumerable<IEntity> entityOptions;
+
+            Func<TEntity, IEnumerable<IEntity>> relatedEntityOptionsSelector;
+            if (this.Config.RelatedEntityOptionsSelectorByMemberName.TryGetValue(
+                context.MemberName,
+                out relatedEntityOptionsSelector))
+            {
+                var entity = context.Parent.SourceValue as TEntity;
+                entityOptions = relatedEntityOptionsSelector(entity);
+            }
+            else
+            {
+                entityOptions = Enumerable.Empty<IEntity>();
+            }
+
+            var viewModelOptions = Mapper.Map<IEnumerable<TRelatedViewModel>>(entityOptions);
+            return viewModelOptions;
         }
 
         #endregion

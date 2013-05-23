@@ -3,7 +3,6 @@
     using System.Linq;
     using System.Web.Mvc;
 
-    using MvcBootstrap.Web.Mvc.Controllers;
     using MvcBootstrap.Web.Mvc.Controllers.Extensions;
     using MvcBootstrap.Web.Mvc.ModelMetadata;
 

@@ -24,7 +24,8 @@
 
             if (relatedType.IsAssignableTo(typeof(IEntity)))
             {
-                throw new NotImplementedException("TODO");
+                var memberName = ExpressionHelper.GetExpressionText(memberExpression);
+                return new RelatedEntitiesConfigForMemberFluenAdapter<TEntity, TViewModel>(this.config, memberName);
             }
             else if (relatedType.IsConstructedGenericTypeFor(typeof(ICollection<>), typeof(IEntity)))
             {

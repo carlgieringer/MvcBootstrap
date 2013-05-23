@@ -21,9 +21,13 @@
             unchecked
             {
                 int hash = seed ?? 5;
-                foreach (var member in thunks)
+                foreach (var thunk in thunks)
                 {
-                    hash = (hash * 29) + member().GetHashCode();
+                    var member = thunk();
+                    if (member != null)
+                    {
+                        hash = (hash * 29) + thunk().GetHashCode();
+                    }
                 }
 
                 return hash;

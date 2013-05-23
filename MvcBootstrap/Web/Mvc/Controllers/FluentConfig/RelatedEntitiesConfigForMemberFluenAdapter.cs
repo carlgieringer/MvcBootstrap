@@ -19,7 +19,7 @@
 
         public IRelatedEntitiesConfigWithSourceFluentAdapter HasChoices(Func<TEntity, IEnumerable<IEntity>> relatedEntitiesSource)
         {
-            this.config.RelatedEntityChoicesSelectorByMemberName[this.memberName] = relatedEntitiesSource;
+            this.config.RelatedEntityOptionsSelectorByMemberName[this.memberName] = relatedEntitiesSource;
             return new RelatedEntitiesConfigWithSourceFluentAdapter<TEntity, TViewModel>(this.config, this.memberName);
         }
     }

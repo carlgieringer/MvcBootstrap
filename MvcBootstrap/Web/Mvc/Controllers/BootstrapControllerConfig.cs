@@ -15,7 +15,7 @@
         public BootstrapControllerConfig()
         {
             this.RelatedEntitiesFluentInterface = new RelatedEntitiesConfigFluentAdapter<TEntity, TViewModel>(this);
-            this.RelatedEntityChoicesSelectorByMemberName = new Dictionary<string, Func<TEntity, IEnumerable<IEntity>>>();
+            this.RelatedEntityOptionsSelectorByMemberName = new Dictionary<string, Func<TEntity, IEnumerable<IEntity>>>();
             this.RelatedEntityViewModelLabelSelectorByMemberName = new Dictionary<string, LambdaExpression>();
         }
 
@@ -63,7 +63,7 @@
         /// Gets a mapping from a string (naming a navigation property) to a lambda that, given an entity, returns an enumerable
         /// of all the related entities which are possible members of the navigation relation.
         /// </summary>
-        internal IDictionary<string, Func<TEntity, IEnumerable<IEntity>>> RelatedEntityChoicesSelectorByMemberName { get; private set; }
+        internal IDictionary<string, Func<TEntity, IEnumerable<IEntity>>> RelatedEntityOptionsSelectorByMemberName { get; private set; }
 
         /// <summary>
         /// Gets a mapping from a string (naming a navigation property) to a lambda that, given a view model for a related entity,
