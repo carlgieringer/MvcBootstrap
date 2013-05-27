@@ -2,13 +2,17 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Web.Mvc;
     using System.Web.Routing;
 
     using MvcBootstrap.Extensions;
+    using MvcBootstrap.Models;
     using MvcBootstrap.ViewModels;
     using MvcBootstrap.Web.Mvc.Controllers;
     using MvcBootstrap.Web.Mvc.Controllers.Extensions;
+
+    using TEMTDomain.StaticLib;
 
     public static class WebViewPageExtensions
     {
@@ -53,9 +57,9 @@
         public static MvcHtmlString EntityActionTitle<TModel>(this WebViewPage<TModel> page)
             where TModel : class, IEntityViewModel
         {
-            var args = new List<object>();
+            var crumbs = new List<object>();
             
-            args.Add(page.ControllerName());
+            crumbs.Add(page.ControllerName());
 
             string label = null;
             if (page.Model != null)
@@ -68,22 +72,23 @@
 
                 if (string.IsNullOrWhiteSpace(label) && page.Model.Id.HasValue)
                 {
-                    args.Add(page.Model.Id.Value.ToString());
+                    crumbs.Add(page.Model.Id.Value.ToString(CultureInfo.InvariantCulture));
                 }
 
                 if (!string.IsNullOrWhiteSpace(label))
                 {
-                    args.Add(label);
+                    crumbs.Add(label);
                 }
             }
 
             var actionName = page.ActionName();
-            if (actionName != "Index")
+            if (actionName != "List" &&
+                actionName != "Read")
             {
-                args.Add(actionName);
+                crumbs.Add(actionName);
             }
 
-            return MvcHtmlString.Create(string.Join(" &rsaquo; ", args));
+            return MvcHtmlString.Create(string.Join(" &rsaquo; ", crumbs));
         }
 
         public static Type EntityType<TModel>(this WebViewPage<TModel> page)

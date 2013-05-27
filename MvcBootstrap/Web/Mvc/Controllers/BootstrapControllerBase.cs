@@ -110,7 +110,6 @@
         {
             var entity = this.Repository.Create();
             var viewModel = Mapper.Map<TViewModel>(entity);
-            this.ViewBag.Action = "Create";
             return this.View(this.Config.CreateViewName, viewModel);
         }
 
@@ -160,7 +159,6 @@
             }
 
             var viewModel = Mapper.Map<TViewModel>(entity);
-            this.ViewBag.Action = "Edit";
             return this.View(this.Config.UpdateViewName, viewModel);
         }
 
