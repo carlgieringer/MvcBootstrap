@@ -2,14 +2,10 @@ namespace MvcBootstrap.Web.Mvc.Controllers.FluentConfig
 {
     using System;
     using System.ComponentModel;
-    using System.Linq.Expressions;
 
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public interface IRelatedEntitiesConfigFluentAdapter<TEntity> : IFluentAdapter
-    {
-        IRelatedEntitiesConfigForMemberFluentAdapter<TEntity> Relation<TRelated>(Expression<Func<TEntity, TRelated>> memberExpression);
-    }
-        
+    /// <summary>
+    /// Hides <see cref="Object"/> methods from the editor making the interface more fluent
+    /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public interface IFluentAdapter
     {

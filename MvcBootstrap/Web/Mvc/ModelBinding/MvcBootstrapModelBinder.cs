@@ -100,7 +100,8 @@
                 return null;
             }
 
-            var provider = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
+            string valueKey = string.Format("{0}.Id", bindingContext.ModelName);
+            var provider = bindingContext.ValueProvider.GetValue(valueKey);
 
             string attemptedValue = provider != null ?
                 provider.AttemptedValue :

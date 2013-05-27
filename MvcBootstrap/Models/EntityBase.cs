@@ -2,6 +2,7 @@
 {
     using System;
     using System.ComponentModel.DataAnnotations;
+    using System.Data.Entity.ModelConfiguration;
 
     public abstract class EntityBase : IEntity
     {
@@ -14,5 +15,14 @@
 
         [Timestamp, ConcurrencyCheck]
         public virtual byte[] Timestamp { get; set; }
+    }
+
+    public class EntityBaseConfiguration : EntityTypeConfiguration<EntityBase>
+    {
+        public EntityBaseConfiguration()
+        {
+            this.HasKey(e => e.Id);
+            this.Property(e => e.Timestamp).IsConcurrencyToken();
+        }
     }
 }

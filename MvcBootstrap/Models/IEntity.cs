@@ -1,6 +1,7 @@
 ﻿namespace MvcBootstrap.Models
 {
     using System;
+    using System.ComponentModel.DataAnnotations;
 
     public interface IEntity
     {

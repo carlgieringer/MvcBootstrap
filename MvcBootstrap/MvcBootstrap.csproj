@@ -90,10 +90,8 @@
     <Compile Include="ViewModels\Attributes\ShowInAttribute.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapControllerBase.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapControllerConfig.cs" />
-    <Compile Include="Web\Mvc\Controllers\FluentConfig\IRelatedEntitiesConfigFluentAdapter.cs" />
-    <Compile Include="Web\Mvc\Controllers\FluentConfig\IRelatedEntitiesConfigForMemberFluentAdapter.cs" />
-    <Compile Include="Web\Mvc\Controllers\FluentConfig\IRelatedEntitiesConfigWithSourceFluentAdapter.cs" />
-    <Compile Include="Web\Mvc\Controllers\FluentConfig\RelatedEntitiesConfigWithSourceFluentAdapter.cs" />
+    <Compile Include="Web\Mvc\Controllers\FluentConfig\IFluentAdapter.cs" />
+    <Compile Include="Web\Mvc\Controllers\FluentConfig\Syntax.cs" />
     <Compile Include="Web\Mvc\Controllers\IBootstrapController.cs" />
     <Compile Include="Web\Mvc\Controllers\IRelatedViewModelLabelSelector.cs" />
     <Compile Include="Web\Mvc\Controllers\IRelatedViewModelLabelSelectorContainer.cs" />
@@ -103,8 +101,10 @@
     <Compile Include="Web\Mvc\Controllers\IViewModelLabelSelector.cs" />
     <Compile Include="Web\Mvc\Controllers\IViewModelLabelSelectorContainer.cs" />
     <Compile Include="Web\Mvc\Controllers\FluentConfig\RelatedEntitiesConfigFluentAdapter.cs" />
-    <Compile Include="Web\Mvc\Controllers\FluentConfig\RelatedEntitiesConfigForMemberFluenAdapter.cs" />
+    <Compile Include="Web\Mvc\Controllers\MappingCreator.cs" />
+    <Compile Include="Web\Mvc\Controllers\RelationsConfig.cs" />
     <Compile Include="Web\Mvc\Controllers\RelatedEntityViewModelLabelSelector.cs" />
+    <Compile Include="Web\Mvc\Controllers\RelationConfig.cs" />
     <Compile Include="Web\Mvc\Controllers\SortOrder.cs" />
     <Compile Include="Web\Mvc\Controllers\SortBase.cs" />
     <Compile Include="Web\Mvc\Controllers\SortBy.cs" />

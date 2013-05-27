@@ -1,4 +1,4 @@
-﻿namespace MvcBootstrap.Tests
+﻿namespace MvcBootstrap.Tests.Binding
 {
     using System.Collections.Specialized;
     using System.Globalization;
@@ -27,7 +27,7 @@
             };
 
             var valueProvider = new NameValueCollectionValueProvider(formCollection, null);
-            var modelMetadata = ModelMetadataProviders.Current.GetMetadataForType(null, typeof(Choices<EntityViewModel>));
+            var modelMetadata = ModelMetadataProviders.Current.GetMetadataForType(null, typeof(Choices<TestEntityViewModel>));
 
             var bindingContext = new ModelBindingContext
             {
@@ -38,7 +38,7 @@
 
             //// Act
 
-            var binding = modelBinder.BindModel(controllerContext, bindingContext) as Choices<EntityViewModel>;
+            var binding = modelBinder.BindModel(controllerContext, bindingContext) as Choices<TestEntityViewModel>;
 
             //// Assert
 
@@ -64,7 +64,7 @@
             };
 
             var valueProvider = new NameValueCollectionValueProvider(formCollection, null);
-            var modelMetadata = ModelMetadataProviders.Current.GetMetadataForType(null, typeof(Choices<EntityViewModel>));
+            var modelMetadata = ModelMetadataProviders.Current.GetMetadataForType(null, typeof(Choices<TestEntityViewModel>));
 
             var bindingContext = new ModelBindingContext
             {
@@ -75,7 +75,7 @@
 
             //// Act
 
-            var binding = modelBinder.BindModel(controllerContext, bindingContext) as Choices<EntityViewModel>;
+            var binding = modelBinder.BindModel(controllerContext, bindingContext) as Choices<TestEntityViewModel>;
 
             //// Assert
 
