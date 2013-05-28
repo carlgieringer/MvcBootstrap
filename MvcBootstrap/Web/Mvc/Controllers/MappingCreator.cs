@@ -1,9 +1,12 @@
 ﻿namespace MvcBootstrap.Web.Mvc.Controllers
 {
+    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Data.Entity;
     using System.Linq;
+    using System.Reflection;
+    using System.Web.Mvc;
 
     using AutoMapper;
 
@@ -15,41 +18,55 @@
     public class MappingCreator<TEntity>
         where TEntity : class, IEntity
     {
-        private RelationsConfig<TEntity> relationsConfig;
+        #region Fields
+
+        public readonly MappingExpressions MappingExpressions;
+
+        private readonly RelationsConfig<TEntity> relationsConfig;
+
+        #endregion
+
+
+        #region Constructors
 
         public MappingCreator(RelationsConfig<TEntity> relationsConfig)
         {
+            this.MappingExpressions = new MappingExpressions();
             this.relationsConfig = relationsConfig;
         }
 
-        public
-            IMappingExpression<TAnyEntity, TAnyViewModel>
+        #endregion
+
+
+        #region Mapping Methods
+
+        public IMappingExpression<TAnyEntity, TAnyViewModel> 
             CreateEntityToViewModelMap<TAnyEntity, TAnyViewModel>()
-            where TAnyEntity : IEntity
+            where TAnyEntity : IEntity 
             where TAnyViewModel : IEntityViewModel
         {
 
-            return Mapper.CreateMap<TAnyEntity, TAnyViewModel>()
-                .ForMember(vm => vm.ConcurrentlyEdited, o => o.Ignore())
-                .ForMember(vm => vm.Id, o => o.ResolveUsing(e => e.Id == 0 ? (int?)null : e.Id));
+            return
+                Mapper.CreateMap<TAnyEntity, TAnyViewModel>()
+                    .ForMember(vm => vm.ConcurrentlyEdited, o => o.Ignore())
+                    .ForMember(vm => vm.Id, o => o.ResolveUsing(e => e.Id == 0 ? (int?)null : e.Id));
         }
 
-        public
-            IMappingExpression<TAnyViewModel, TAnyEntity>
+        public IMappingExpression<TAnyViewModel, TAnyEntity> 
             CreateViewModelToEntityMap<TAnyViewModel, TAnyEntity>()
-            where TAnyEntity : IEntity
+            where TAnyEntity : IEntity 
             where TAnyViewModel : IEntityViewModel
         {
-            return Mapper.CreateMap<TAnyViewModel, TAnyEntity>()
-                .ForMember(e => e.Created, o => o.Ignore())
-                .ForMember(e => e.Modified, o => o.Ignore());
+            return
+                Mapper.CreateMap<TAnyViewModel, TAnyEntity>()
+                    .ForMember(e => e.Created, o => o.Ignore())
+                    .ForMember(e => e.Modified, o => o.Ignore());
         }
 
-        public
-            IMappingExpression<TRelatedEntity, Choice<TRelatedViewModel>>
-            CreateEntityToChoiceMap<TRelatedEntity, TRelatedViewModel>()
+        public IMappingExpression<TRelatedEntity, Choice<TRelatedViewModel>> 
+            CreateEntityToChoiceMap<TRelatedEntity, TRelatedViewModel>() 
             where TRelatedEntity : class, IEntity
-            where TRelatedViewModel : class, IEntityViewModel, new() 
+            where TRelatedViewModel : class, IEntityViewModel, new()
         {
             var mappingExpression = Mapper.CreateMap<TRelatedEntity, Choice<TRelatedViewModel>>();
             var converter = new EntityToChoiceConverter<TRelatedEntity, TRelatedViewModel>(this);
@@ -57,15 +74,14 @@
             return mappingExpression;
         }
 
-        public
-            IMappingExpression<Choice<TRelatedViewModel>, TRelatedEntity>
-            CreateChoiceToEntityMap<TRelatedViewModel, TRelatedEntity>(IBootstrapRepository<TRelatedEntity> repository)
-            where TRelatedViewModel : class, IEntityViewModel
+        public IMappingExpression<Choice<TRelatedViewModel>, TRelatedEntity> 
+            CreateChoiceToEntityMap
+            <TRelatedViewModel, TRelatedEntity>(IBootstrapRepository<TRelatedEntity> repository)
+            where TRelatedViewModel : class, IEntityViewModel 
             where TRelatedEntity : class, IEntity, new()
         {
             var mappingExpression = Mapper.CreateMap<Choice<TRelatedViewModel>, TRelatedEntity>();
-            var converter =
-                new ChoiceToEntityConverter<TRelatedViewModel, TRelatedEntity>(repository);
+            var converter = new ChoiceToEntityConverter<TRelatedViewModel, TRelatedEntity>(repository);
             mappingExpression.ConvertUsing(converter);
             return mappingExpression;
         }
@@ -80,10 +96,9 @@
         /// <returns>
         /// A mapping configuration
         /// </returns>
-        public
-            IMappingExpression<ICollection<TRelatedEntity>, Choices<TRelatedViewModel>>
-            CreateEntitiesToChoicesMap<TRelatedEntity, TRelatedViewModel>()
-            where TRelatedEntity : IEntity
+        public IMappingExpression<ICollection<TRelatedEntity>, Choices<TRelatedViewModel>> 
+            CreateEntitiesToChoicesMap
+            <TRelatedEntity, TRelatedViewModel>() where TRelatedEntity : IEntity
             where TRelatedViewModel : class, IEntityViewModel, new()
         {
             var mappingExpression = Mapper.CreateMap<ICollection<TRelatedEntity>, Choices<TRelatedViewModel>>();
@@ -106,24 +121,162 @@
         /// <returns>
         /// A mapping configuration
         /// </returns>
-        public
-            IMappingExpression<Choices<TRelatedViewModel>, ICollection<TRelatedEntity>>
-            CreateChoicesToEntitiesMap<TRelatedViewModel, TRelatedEntity>(IBootstrapRepository<TRelatedEntity> repository)
-            where TRelatedViewModel : IEntityViewModel
-            where TRelatedEntity : class, IEntity, new()
+        public IMappingExpression<Choices<TRelatedViewModel>, ICollection<TRelatedEntity>> CreateChoicesToEntitiesMap
+            <TRelatedViewModel, TRelatedEntity>(IBootstrapRepository<TRelatedEntity> repository)
+            where TRelatedViewModel : IEntityViewModel where TRelatedEntity : class, IEntity, new()
         {
             var mappingExpression = Mapper.CreateMap<Choices<TRelatedViewModel>, ICollection<TRelatedEntity>>();
-            var converter =
-                new ChoicesToEntitiesConverter<TRelatedViewModel, TRelatedEntity>(repository);
+            var converter = new ChoicesToEntitiesConverter<TRelatedViewModel, TRelatedEntity>(repository);
             mappingExpression.ConvertUsing(converter);
             return mappingExpression;
         }
 
-        private class 
-            EntityToChoiceConverter<TRelatedEntity, TRelatedViewModel> :
+        #endregion
+
+
+        #region Internal Methods
+
+        internal void InitializeMapping<TViewModel>(IDependencyResolver dependencyResolver)
+            where TViewModel : IEntityViewModel
+        {
+            this.MappingExpressions.Add(this.CreateEntityToViewModelMap<TEntity, TViewModel>());
+            this.MappingExpressions.Add(this.CreateViewModelToEntityMap<TViewModel, TEntity>());
+
+            // foreach property in TModel, if same property exists in TViewModel and dest type is Choice
+            // map type of source prop to generic type of Choice and vice versa
+
+            const BindingFlags PublicInstanceMembers = BindingFlags.Public | BindingFlags.Instance;
+
+            foreach (var sourceProp in typeof(TEntity).GetProperties(PublicInstanceMembers))
+            {
+                var destProp = typeof(TViewModel).GetProperty(sourceProp.Name, PublicInstanceMembers);
+                if (destProp != null)
+                {
+                    if (sourceProp.PropertyType.IsAssignableTo(typeof(IEntity))
+                        && destProp.PropertyType.IsConstructedGenericTypeFor(typeof(Choice<>)))
+                    {
+                        var destChoiceType = destProp.PropertyType.GetGenericArguments().First();
+
+                        // Create mappings from the property to the choice (and vice-versa)
+                        this.CreateEntityToChoiceMap(sourceProp.PropertyType, destChoiceType);
+                        var entityRepository =
+                            dependencyResolver.GetService(
+                                typeof(IBootstrapRepository<>).MakeGenericType(sourceProp.PropertyType));
+                        this.CreateChoiceToEntityMap(destChoiceType, sourceProp.PropertyType, entityRepository);
+
+                        // Create mapping expressions from the property to the selection type of the choice/choices (and vice-versa)
+                        this.AddMappingsToFrom(sourceProp.PropertyType, destChoiceType);
+                    }
+                    else if (sourceProp.PropertyType.IsConstructedGenericTypeFor(typeof(ICollection<>), typeof(IEntity))
+                             && destProp.PropertyType.IsConstructedGenericTypeFor(typeof(Choices<>)))
+                    {
+                        var sourceEntityType = sourceProp.PropertyType.GetGenericArguments().First();
+                        var destChoicesType = destProp.PropertyType.GetGenericArguments().First();
+
+                        // Create mappings from the property to the choices (and vice versa)
+                        this.CreateEntitiesToChoicesMap(sourceEntityType, destChoicesType);
+                        var entityRepository =
+                            dependencyResolver.GetService(
+                                typeof(IBootstrapRepository<>).MakeGenericType(sourceEntityType));
+                        this.CreateChoicesToEntitiesMap(destChoicesType, sourceEntityType, entityRepository);
+
+                        // Create mapping expressions from the entity to the selection type of the choice/choices (and vice-versa)
+                        this.AddMappingsToFrom(sourceEntityType, destChoicesType);
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+
+        #region Non-Generic Mapping Methods
+
+        private void CreateEntityToChoiceMap(Type relatedEntityType, Type relatedViewModelType)
+        {
+            var method =
+                this.GetType()
+                    .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                    .Single(m => m.Name == "CreateEntityToChoiceMap" && m.IsGenericMethod)
+                    .MakeGenericMethod(relatedEntityType, relatedViewModelType);
+            method.Invoke(this, new object[] { });
+        }
+
+        private void CreateChoiceToEntityMap(Type relatedViewModelType, Type relatedEntityType, object relatedEntityRepository)
+        {
+            var method =
+                this.GetType()
+                    .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                    .Single(m => m.Name == "CreateChoiceToEntityMap" && m.IsGenericMethod)
+                    .MakeGenericMethod(relatedViewModelType, relatedEntityType);
+            method.Invoke(this, new[] { relatedEntityRepository });
+        }
+
+        private void CreateEntitiesToChoicesMap(Type relatedEntityType, Type relatedViewModelType)
+        {
+            var method =
+                this.GetType()
+                    .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                    .Single(m => m.Name == "CreateEntitiesToChoicesMap" && m.IsGenericMethod)
+                    .MakeGenericMethod(relatedEntityType, relatedViewModelType);
+            method.Invoke(this, new object[] { });
+        }
+
+        private void CreateChoicesToEntitiesMap(Type relatedViewModelType, Type relatedEntityType, object relatedEntityRepository)
+        {
+            var method =
+                this.GetType()
+                    .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                    .Single(m => m.Name == "CreateChoicesToEntitiesMap" && m.IsGenericMethod)
+                    .MakeGenericMethod(relatedViewModelType, relatedEntityType);
+            method.Invoke(this, new[] { relatedEntityRepository });
+        }
+
+        #endregion
+
+
+        #region Private Methods
+
+        private IEnumerable<TRelatedViewModel> GetChoiceOptions<TRelatedEntity, TRelatedViewModel>(
+            ResolutionContext context) where TRelatedViewModel : class, IEntityViewModel, new()
+        {
+            IEnumerable<IEntity> entityOptions;
+
+            RelationConfig<TEntity> relationConfig;
+            if (this.relationsConfig.RelatedConfigsByMemberName.TryGetValue(context.MemberName, out relationConfig))
+            {
+                var entity = context.Parent.SourceValue as TEntity;
+                entityOptions = relationConfig.OptionsSelector(entity);
+
+                if (typeof(TRelatedEntity).IsAssignableTo(typeof(TEntity)) && relationConfig.CanChooseSelf.HasValue
+                    && !relationConfig.CanChooseSelf.Value && entity != null)
+                {
+                    entityOptions = entityOptions.Where(e => e.Id != entity.Id);
+                }
+            }
+            else
+            {
+                entityOptions = Enumerable.Empty<IEntity>();
+            }
+
+            var viewModelOptions = Mapper.Map<IEnumerable<TRelatedViewModel>>(entityOptions);
+            return viewModelOptions;
+        }
+
+        private void AddMappingsToFrom(Type type1, Type type2)
+        {
+            this.MappingExpressions.Add(type1, type2, Mapper.CreateMap(type1, type2));
+            this.MappingExpressions.Add(type2, type1, Mapper.CreateMap(type2, type1));
+        }
+
+        #endregion
+
+
+        #region Nested Classes
+
+        private class EntityToChoiceConverter<TRelatedEntity, TRelatedViewModel> :
             ITypeConverter<TRelatedEntity, Choice<TRelatedViewModel>>
-            where TRelatedViewModel : class, IEntityViewModel, new() 
-            where TRelatedEntity : class, IEntity
+            where TRelatedViewModel : class, IEntityViewModel, new() where TRelatedEntity : class, IEntity
         {
             private readonly MappingCreator<TEntity> mappingCreator;
 
@@ -146,11 +299,9 @@
             }
         }
 
-        private class 
-            ChoiceToEntityConverter<TRelatedViewModel, TRelatedEntity> :
+        private class ChoiceToEntityConverter<TRelatedViewModel, TRelatedEntity> :
             ITypeConverter<Choice<TRelatedViewModel>, TRelatedEntity>
-            where TRelatedViewModel : class, IEntityViewModel
-            where TRelatedEntity : class, IEntity, new()
+            where TRelatedViewModel : class, IEntityViewModel where TRelatedEntity : class, IEntity, new()
         {
             private readonly IBootstrapRepository<TRelatedEntity> repository;
 
@@ -163,21 +314,20 @@
             {
                 var entity = context.DestinationValue as TRelatedEntity;
 
-                var choice = context.SourceValue as Choice<TRelatedViewModel> ??
-                    new Choice<TRelatedViewModel>();
+                var choice = context.SourceValue as Choice<TRelatedViewModel> ?? new Choice<TRelatedViewModel>();
 
                 var selectedEntity = Mapper.Map<TRelatedEntity>(choice.Selection);
                 if (entity != null && selectedEntity == null)
                 {
                     entity = null;
                 }
-                else if ((entity == null && selectedEntity != null) ||
-                    (entity != null && entity.Id != selectedEntity.Id))
+                else if ((entity == null && selectedEntity != null) || (entity != null && entity.Id != selectedEntity.Id))
                 {
                     var attachedEntity = this.repository.GetFromLocal(selectedEntity);
-                    entity = attachedEntity ??
-                        // .Attach puts the DbEntityEntry in the Unchanged state, so properties on entity will not be persisted due to the Attach
-                        this.repository.Attach(selectedEntity);
+                    entity = attachedEntity
+                             ??
+                             // .Attach puts the DbEntityEntry in the Unchanged state, so properties on entity will not be persisted due to the Attach
+                             this.repository.Attach(selectedEntity);
                 }
 
                 return entity;
@@ -196,8 +346,7 @@
         /// </remarks>
         /// <typeparam name="TRelatedEntity">The type of the related entity</typeparam>
         /// <typeparam name="TRelatedViewModel">The type of the related entity's view model</typeparam>
-        private class
-            EntitiesToChoicesConverter<TRelatedEntity, TRelatedViewModel> :
+        private class EntitiesToChoicesConverter<TRelatedEntity, TRelatedViewModel> :
             ITypeConverter<ICollection<TRelatedEntity>, Choices<TRelatedViewModel>>
             where TRelatedViewModel : class, IEntityViewModel, new()
         {
@@ -221,11 +370,9 @@
             }
         }
 
-        private class 
-            ChoicesToEntitiesConverter<TRelatedViewModel, TRelatedEntity> :
+        private class ChoicesToEntitiesConverter<TRelatedViewModel, TRelatedEntity> :
             ITypeConverter<Choices<TRelatedViewModel>, ICollection<TRelatedEntity>>
-            where TRelatedViewModel : IEntityViewModel
-            where TRelatedEntity : class, IEntity, new()
+            where TRelatedViewModel : IEntityViewModel where TRelatedEntity : class, IEntity, new()
         {
             private readonly IBootstrapRepository<TRelatedEntity> repository;
 
@@ -236,14 +383,14 @@
 
             public ICollection<TRelatedEntity> Convert(ResolutionContext context)
             {
-                var entities = context.DestinationValue as ICollection<TRelatedEntity> ??
-                    new Collection<TRelatedEntity>();
+                var entities = context.DestinationValue as ICollection<TRelatedEntity>
+                               ?? new Collection<TRelatedEntity>();
 
                 // Start with an empty collection so that the only ones in it at the end are those that were mapped
                 entities.Clear();
 
-                var viewModelCollection = context.SourceValue as Choices<TRelatedViewModel> ??
-                    new Choices<TRelatedViewModel>();
+                var viewModelCollection = context.SourceValue as Choices<TRelatedViewModel>
+                                          ?? new Choices<TRelatedViewModel>();
 
                 foreach (var viewModel in viewModelCollection.Selections)
                 {
@@ -254,9 +401,10 @@
                     }
 
                     var attachedEntity = this.repository.GetFromLocal(entity);
-                    entity = attachedEntity ??
-                        // .Attach puts the DbEntityEntry in the Unchanged state, so properties on entity will not be persisted due to the Attach
-                        this.repository.Attach(entity);
+                    entity = attachedEntity
+                             ??
+                             // .Attach puts the DbEntityEntry in the Unchanged state, so properties on entity will not be persisted due to the Attach
+                             this.repository.Attach(entity);
 
                     // Adding the entity to a collection that is a navigation property will be picked up by the context
                     entities.Add(entity);
@@ -266,35 +414,48 @@
             }
         }
 
-        private IEnumerable<TRelatedViewModel>
-            GetChoiceOptions<TRelatedEntity, TRelatedViewModel>(ResolutionContext context) 
-            where TRelatedViewModel : class, IEntityViewModel, new()
+        #endregion
+    }
+
+    public class MappingExpressions
+    {
+        private readonly Dictionary<Type, Dictionary<Type, object>> mappingExpressions;
+
+        public MappingExpressions()
         {
-            IEnumerable<IEntity> entityOptions;
+            this.mappingExpressions = new Dictionary<Type, Dictionary<Type, object>>();
+        }
 
-            RelationConfig<TEntity> relationConfig;
-            if (this.relationsConfig.RelatedConfigsByMemberName.TryGetValue(
-                context.MemberName,
-                out relationConfig))
+        public void Add(Type fromType, Type toType, object mappingExpression)
+        {
+            Dictionary<Type, object> toMappingExpressions;
+            if (!this.mappingExpressions.TryGetValue(fromType, out toMappingExpressions))
             {
-                var entity = context.Parent.SourceValue as TEntity;
-                entityOptions = relationConfig.OptionsSelector(entity);
+                toMappingExpressions = new Dictionary<Type, object>();
+                this.mappingExpressions[fromType] = toMappingExpressions;
+            }
 
-                if (typeof(TRelatedEntity).IsAssignableTo(typeof(TEntity)) &&
-                    relationConfig.CanChooseSelf.HasValue &&
-                    !relationConfig.CanChooseSelf.Value &&
-                    entity != null)
+            toMappingExpressions.Add(toType, mappingExpression);
+        }
+
+        public void Add<TFrom, TTo>(IMappingExpression<TFrom, TTo> mappingExpression)
+        {
+            this.Add(typeof(TFrom), typeof(TTo), mappingExpression);
+        }
+
+        public IMappingExpression<TFrom, TTo> Get<TFrom, TTo>()
+        {
+            Dictionary<Type, object> toMappingExpressions;
+            if (this.mappingExpressions.TryGetValue(typeof(TFrom), out toMappingExpressions))
+            {
+                object mappingExpression;
+                if (toMappingExpressions.TryGetValue(typeof(TFrom), out mappingExpression))
                 {
-                    entityOptions = entityOptions.Where(e => e.Id != entity.Id);
+                    return mappingExpression as IMappingExpression<TFrom, TTo>;
                 }
             }
-            else
-            {
-                entityOptions = Enumerable.Empty<IEntity>();
-            }
 
-            var viewModelOptions = Mapper.Map<IEnumerable<TRelatedViewModel>>(entityOptions);
-            return viewModelOptions;
+            return null;
         }
     }
 }

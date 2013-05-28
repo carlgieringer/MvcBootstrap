@@ -1,9 +1,6 @@
 ﻿namespace MvcBootstrap.Web.Mvc.Controllers
 {
-    using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Data.Entity;
     using System.Data.Entity.Validation;
     using System.Linq;
     using System.Web;
@@ -24,13 +21,9 @@
     {
         #region Fields
 
-        protected readonly IBootstrapRepository<TEntity> Repository;
-
-        protected readonly IMappingExpression<TEntity, TViewModel> EntityToViewModelMappingExpression;
-
-        protected readonly IMappingExpression<TViewModel, TEntity> ViewModelToEntityMappingExpression;
-
         public readonly MappingCreator<TEntity> MappingCreator;
+
+        protected readonly IBootstrapRepository<TEntity> Repository;
 
         #endregion
 
@@ -53,9 +46,7 @@
                 };
 
             this.MappingCreator = new MappingCreator<TEntity>(this.Config.RelationsConfig);
-
-            this.EntityToViewModelMappingExpression = this.MappingCreator.CreateEntityToViewModelMap<TEntity, TViewModel>();
-            this.ViewModelToEntityMappingExpression = this.MappingCreator.CreateViewModelToEntityMap<TViewModel, TEntity>();
+            this.MappingCreator.InitializeMapping<TViewModel>(DependencyResolver.Current);
         }
 
         #endregion
