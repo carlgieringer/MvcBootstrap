@@ -40,6 +40,7 @@
 
         #endregion
 
+
         #region Actions
 
         [HttpGet, AllowAnonymous]
@@ -53,7 +54,7 @@
         public ActionResult Login(LoginModel model, string returnUrl)
         {
             if (this.ModelState.IsValid
-                && WebSecurity.Login(model.UserName, model.Password, persistCookie: model.RememberMe))
+                && WebSecurity.Login(model.Username, model.Password, persistCookie: model.RememberMe))
             {
                 return this.RedirectToLocal(returnUrl);
             }
@@ -64,7 +65,7 @@
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult LogOff()
+        public ActionResult Logout()
         {
             WebSecurity.Logout();
 
@@ -85,8 +86,8 @@
                 // Attempt to register the user
                 try
                 {
-                    WebSecurity.CreateUserAndAccount(model.UserName, model.Password);
-                    WebSecurity.Login(model.UserName, model.Password);
+                    WebSecurity.CreateUserAndAccount(model.Username, model.Password);
+                    WebSecurity.Login(model.Username, model.Password);
                     return this.RedirectToAction("Index", "Home");
                 }
                 catch (MembershipCreateUserException e)
@@ -335,7 +336,6 @@
         }
 
         #endregion
-
 
 
         #region Helpers

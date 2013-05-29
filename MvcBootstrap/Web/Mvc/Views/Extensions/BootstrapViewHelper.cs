@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq.Expressions;
+    using System.Web;
     using System.Web.Mvc;
     using System.Web.Mvc.Html;
     using System.Web.Routing;
@@ -51,7 +52,7 @@
 
         public MvcHtmlString SaveSubmit()
         {
-            return this.page.Html.Submit("Save", new { @class = "btn btn-primary" });
+            return this.Submit("Save");
         }
 
         public MvcForm BeginCreateForm()
@@ -64,6 +65,25 @@
         {
             string updateAction = "Update";
             return this.page.Html.BeginForm(updateAction, this.page.Html.ControllerName(), FormMethod.Post, new { @class = "form-horizontal" });
+        }
+
+        public MvcForm BeginForm()
+        {
+            return this.BeginForm(null, null, new { });
+        }
+
+        public MvcForm BeginForm(string actionName, string controllerName, object htmlAttributes)
+        {
+            var attributeDict = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
+
+            object classAttribute;
+            classAttribute = attributeDict.TryGetValue("class", out classAttribute) ? 
+                string.Format("{0} {1}", classAttribute, "form-horizontal") : 
+                "form-horizontal";
+
+            attributeDict["class"] = classAttribute;
+
+            return this.page.Html.BeginForm(actionName, controllerName, FormMethod.Post, attributeDict);
         }
 
         public MvcHtmlString CreateLink()
@@ -115,6 +135,110 @@
         {
             string viewAction = "Read";
             return this.page.Html.ActionLink("Cancel", viewAction, new { id }, new { @class = "btn" });
+        }
+
+        public MvcHtmlString Submit(string value)
+        {
+            return this.page.Html.Submit(value, new { @class = "btn btn-primary" });
+        }
+
+        public MvcHtmlString LabelFor<TValue>(Expression<Func<TModel, TValue>> expression)
+        {
+            return this.page.Html.LabelFor(expression, new { @class = "control-label" });
+        }
+
+        public MvcHtmlString TextBoxFor<TValue>(Expression<Func<TModel, TValue>> expression)
+        {
+            var tagBuilder = new TagBuilder("div");
+            tagBuilder.AddCssClass("controls");
+            tagBuilder.InnerHtml = 
+                this.page.Html.TextBoxFor(expression).ToHtmlString() + 
+                this.page.Html.ValidationMessageFor(expression, null, new { @class = "text-error" }).ToHtmlString();
+            return tagBuilder.ToMvcHtmlString(TagRenderMode.Normal);
+        }
+
+        public MvcHtmlString PasswordFor<TValue>(Expression<Func<TModel, TValue>> expression)
+        {
+            var tagBuilder = new TagBuilder("div");
+            tagBuilder.AddCssClass("controls");
+            tagBuilder.InnerHtml =
+                this.page.Html.PasswordFor(expression).ToHtmlString() +
+                this.ValidationMessageFor(expression).ToHtmlString();
+            return tagBuilder.ToMvcHtmlString(TagRenderMode.Normal);
+        }
+
+        public MvcHtmlString ValidationMessageFor<TValue>(Expression<Func<TModel, TValue>> expression)
+        {
+            return this.page.Html.ValidationMessageFor(expression, null, new { @class = "text-error" });
+        }
+
+        public MvcHtmlString TextBoxGroupFor<TValue>(Expression<Func<TModel, TValue>> expression)
+        {
+            var tagBuilder = new TagBuilder("div");
+            tagBuilder.AddCssClass("control-group");
+            tagBuilder.InnerHtml = 
+                this.LabelFor(expression).ToHtmlString() + 
+                this.TextBoxFor(expression).ToHtmlString();
+            return tagBuilder.ToMvcHtmlString(TagRenderMode.Normal);
+        }
+
+        public MvcHtmlString SubmitGroup(string value)
+        {
+            var controlsBuilder = new TagBuilder("div");
+            controlsBuilder.AddCssClass("controls");
+            controlsBuilder.InnerHtml = this.Submit(value).ToHtmlString();
+            
+            var groupBuilder = new TagBuilder("div");
+            groupBuilder.AddCssClass("control-group");
+            groupBuilder.InnerHtml = controlsBuilder.ToString();
+
+            return groupBuilder.ToMvcHtmlString(TagRenderMode.Normal);
+        }
+
+        public IHtmlString ValidationSummary(string message = null)
+        {
+            var validationSummary = this.page.Html.ValidationSummary(true, message, new { @class = "text-error" }) ?? MvcHtmlString.Empty;
+            return this.page.Html.Raw(HttpUtility.HtmlDecode(validationSummary.ToHtmlString()));
+        }
+
+        public MvcHtmlString PasswordGroupFor<TValue>(Expression<Func<TModel, TValue>> expression)
+        {
+            var tagBuilder = new TagBuilder("div");
+            tagBuilder.AddCssClass("control-group");
+            tagBuilder.InnerHtml =
+                this.LabelFor(expression).ToHtmlString() +
+                this.PasswordFor(expression).ToHtmlString();
+            return tagBuilder.ToMvcHtmlString(TagRenderMode.Normal);
+        }
+
+        public MvcHtmlString CheckboxGroupFor(Expression<Func<TModel, bool>> expression)
+        {
+            var tagBuilder = new TagBuilder("div");
+            tagBuilder.AddCssClass("control-group");
+            tagBuilder.InnerHtml =
+                this.LabelFor(expression).ToHtmlString() +
+                this.CheckboxFor(expression).ToHtmlString();
+            return tagBuilder.ToMvcHtmlString(TagRenderMode.Normal);
+        }
+
+        public MvcHtmlString CheckboxFor(Expression<Func<TModel, bool>> expression)
+        {
+            var tagBuilder = new TagBuilder("div");
+            tagBuilder.AddCssClass("controls");
+            tagBuilder.InnerHtml =
+                this.page.Html.CheckBoxFor(expression).ToHtmlString() +
+                this.ValidationMessageFor(expression).ToHtmlString();
+            return tagBuilder.ToMvcHtmlString(TagRenderMode.Normal);
+        }
+
+        public MvcForm BeginForm(object htmlAttributes)
+        {
+            return this.BeginForm(null, null, htmlAttributes);
+        }
+
+        public MvcForm BeginForm(string actionName, string controllerName)
+        {
+            return this.BeginForm(actionName, controllerName, null);
         }
     }
 }

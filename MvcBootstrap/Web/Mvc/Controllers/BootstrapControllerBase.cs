@@ -250,6 +250,45 @@
 
         #region Private Methods
 
+        private static IEnumerable<ErrorKeyAndMessage> GetEntityValidationErrorKeyAndMessages(DbEntityValidationException ex, TEntity entity)
+        {
+            var errorKeyAndMessages = new List<ErrorKeyAndMessage>();
+
+            var entityValidationResult = ex.EntityValidationErrors.SingleOrDefault(vr => vr.Entry.Entity == entity);
+            if (entityValidationResult != null)
+            {
+                foreach (var validationError in entityValidationResult.ValidationErrors)
+                {
+                    // We want to be able to include HTML in our error messages, so encode the validation error message which
+                    // may include user input
+                    string errorMessage = HttpUtility.HtmlEncode(validationError.ErrorMessage);
+                    errorKeyAndMessages.Add(new ErrorKeyAndMessage(validationError.PropertyName, errorMessage));
+                }
+            }
+
+            var otherEntityValidationResults = ex.EntityValidationErrors.Where(vr => vr.Entry.Entity != entity);
+            foreach (var validationResult in otherEntityValidationResults)
+            {
+                foreach (var validationError in validationResult.ValidationErrors)
+                {
+                    string otherEntityDescription = validationResult.Entry.Entity.GetType().Description();
+
+                    // We want to be able to include HTML in our error messages, so encode the validation error message which
+                    // may include user input
+                    string errorMessage = HttpUtility.HtmlEncode(validationError.ErrorMessage);
+                    string error = !string.IsNullOrEmpty(validationError.PropertyName)
+                                       ? @"{0}&rsquo;s {1}: {2}.".F(
+                                           otherEntityDescription,
+                                           validationError.PropertyName,
+                                           errorMessage)
+                                       : @"{0}: {1}".F(otherEntityDescription, errorMessage);
+                    errorKeyAndMessages.Add(new ErrorKeyAndMessage(string.Empty, error));
+                }
+            }
+
+            return errorKeyAndMessages;
+        }
+
         private IEnumerable<TEntity> ApplySort(IEnumerable<TEntity> entities)
         {
             IOrderedEnumerable<TEntity> sortedEntities;
@@ -281,43 +320,6 @@
             }
 
             return sortedEntities;
-        }
-
-        private static IEnumerable<ErrorKeyAndMessage> GetEntityValidationErrorKeyAndMessages(DbEntityValidationException ex, TEntity entity)
-        {
-            var errorKeyAndMessages = new List<ErrorKeyAndMessage>();
-
-            var entityValidationResult = ex.EntityValidationErrors.SingleOrDefault(vr => vr.Entry.Entity == entity);
-            if (entityValidationResult != null)
-            {
-                foreach (var validationError in entityValidationResult.ValidationErrors)
-                {
-                    // We want to display some of our error messages with HTML, so make sure to HTML encode the user input
-                    string errorMessage = HttpUtility.HtmlEncode(validationError.ErrorMessage);
-                    errorKeyAndMessages.Add(new ErrorKeyAndMessage(validationError.PropertyName, errorMessage));
-                }
-            }
-
-            var otherEntityValidationResults = ex.EntityValidationErrors.Where(vr => vr.Entry.Entity != entity);
-            foreach (var validationResult in otherEntityValidationResults)
-            {
-                foreach (var validationError in validationResult.ValidationErrors)
-                {
-                    string otherEntityDescription = validationResult.Entry.Entity.GetType().Description();
-
-                    // We want to display some of our error messages with HTML, so make sure to HTML encode the user input
-                    string errorMessage = HttpUtility.HtmlEncode(validationError.ErrorMessage);
-                    string error = !string.IsNullOrEmpty(validationError.PropertyName)
-                                       ? @"{0}&rsquo;s {1}: {2}.".F(
-                                           otherEntityDescription,
-                                           validationError.PropertyName,
-                                           errorMessage)
-                                       : @"{0}: {1}".F(otherEntityDescription, errorMessage);
-                    errorKeyAndMessages.Add(new ErrorKeyAndMessage(string.Empty, error));
-                }
-            }
-
-            return errorKeyAndMessages;
         }
 
         #endregion

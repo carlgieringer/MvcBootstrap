@@ -26,3 +26,10 @@ Original older article: http://www.chrisvandesteeg.nl/2010/11/22/embedding-pre-c
 Convert as much as possible of entity config to config classes; use inheritance of config classes?
 
 Cut out as much DotNetOpenAuth as I can (compare with empty MVC4 Internet Application.)
+
+Consolidate .Bootstrap() page helper; .Bootstrap().ControlGroupFor(...)
+
+jquery validation
+https://github.com/jzaefferer/jquery-validation
+
+unobtrusive ajax?
