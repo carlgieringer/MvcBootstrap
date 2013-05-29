@@ -3,11 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Globalization;
+    using System.Linq;
     using System.Web.Mvc;
     using System.Web.Routing;
 
     using MvcBootstrap.Extensions;
-    using MvcBootstrap.Models;
+    using MvcBootstrap.Util;
     using MvcBootstrap.ViewModels;
     using MvcBootstrap.Web.Mvc.Controllers;
     using MvcBootstrap.Web.Mvc.Controllers.Extensions;
@@ -16,32 +17,16 @@
 
     public static class WebViewPageExtensions
     {
+        #region Routing-Related Methods
+
+        public static ControllerBase Controller<TModel>(this WebViewPage<TModel> page)
+        {
+            return page.ViewContext.Controller;
+        }
+
         public static string ControllerName<TModel>(this WebViewPage<TModel> page)
         {
-            return page.ViewContext.Controller.ControllerContext.RouteData.Values["controller"].ToString();
-        }
-
-        public static bool HasFlash<TModel>(this WebViewPage<TModel> page)
-        {
-            return page.ViewData.ContainsKey(ControllerExtensions.FlashMessageKey) ||
-                page.TempData.ContainsKey(ControllerExtensions.FlashMessageKey);
-        }
-
-        public static string FlashMessage<TModel>(this WebViewPage<TModel> page)
-        {
-            return (string)(page.ViewData[ControllerExtensions.FlashMessageKey] ??
-                page.TempData[ControllerExtensions.FlashMessageKey]);
-        }
-
-        public static FlashKind FlashKind<TModel>(this WebViewPage<TModel> page)
-        {
-            return (FlashKind)(page.ViewData[ControllerExtensions.FlashKindKey] ??
-                page.TempData[ControllerExtensions.FlashKindKey]);
-        }
-
-        public static string FlashAlertClass<TModel>(this WebViewPage<TModel> page)
-        {
-            return page.Html.AttributeEncode(page.FlashKind().ToAlertClass());
+            return page.ViewContext.Controller.Name();
         }
 
         public static string ActionName<TModel>(this WebViewPage<TModel> page)
@@ -49,63 +34,206 @@
             return page.ViewContext.Controller.ActionName();
         }
 
+
         public static RouteValueDictionary RouteValues<TModel>(this WebViewPage<TModel> page)
         {
             return page.ViewContext.Controller.ControllerContext.RouteData.Values;
         }
 
-        public static MvcHtmlString EntityActionTitle<TModel>(this WebViewPage<TModel> page)
+        /// <summary>
+        /// Calculates a description for the current page based upon the identity
+        /// and heirachy of the current controller and action.
+        /// </summary>
+        /// <typeparam name="TModel"></typeparam>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public static MvcHtmlString PageTitle<TModel>(this WebViewPage<TModel> page)
             where TModel : class, IEntityViewModel
         {
-            var crumbs = new List<object>();
-            
-            crumbs.Add(page.ControllerName());
+            var breadcrumbTexts = page.GetBreadcrumbsList().Select(c => c.Text);
+            return MvcHtmlString.Create(string.Join(" &rsaquo; ", breadcrumbTexts));
+        }
 
+        public static IEnumerable<Breadcrumb> GetBreadcrumbsList<TModel>(this WebViewPage<TModel> page)
+            where TModel : class
+        {
+            var crumbs = new List<Breadcrumb>();
+
+            // Begin breadcrumbs with home
+            crumbs.Add(
+                new Breadcrumb(
+                    StringHelper.SplitCamelCase(MvcBootstrapConfig.HomeControllerName),
+                    page.Url.Action(HomeControllerAction.Index, MvcBootstrapConfig.HomeControllerName)));
+
+            var controller = page.Controller();
+            string controllerName = controller.Name();
+            string actionName = page.ActionName();
+
+            if (controller.IsHomeController())
+            {
+                // Only actions other than Index get a breadcrumb
+                if (actionName != HomeControllerAction.Index)
+                {
+                    crumbs.Add(
+                        new Breadcrumb(
+                            StringHelper.SplitCamelCase(actionName),
+                            page.Url.Action(actionName, MvcBootstrapConfig.HomeControllerName)));
+                }
+            }
+            else
+            {
+                // Controllers other than home get their own breadcrumb
+                crumbs.Add(new Breadcrumb(controller.Name(), page.Url.Action(BootstrapActionName.List, controllerName)));
+
+                if (controller.IsBootstrapController())
+                {
+                    // Bootstrap controllers have specific rules for their CRUD actions
+                    switch (page.ActionName())
+                    {
+                        case BootstrapActionName.List:
+                            // The list action is represented by the controller name breadcrumb, already added.
+                            break;
+
+                        case BootstrapActionName.Create:
+                            // The create action is represented by an additional breadcrumb on the controller
+                            crumbs.Add(
+                                new Breadcrumb(
+                                    BootstrapActionName.Create,
+                                    page.Url.Action(BootstrapActionName.Create, controllerName)));
+                            break;
+
+                        case BootstrapActionName.Read:
+                            {
+                                var viewModel = (IEntityViewModel)page.Model;
+                                // The read action is represented by the model's label
+                                crumbs.Add(
+                                    new Breadcrumb(
+                                        page.GetModelLabel(),
+                                        page.Url.Action(BootstrapActionName.Read, controllerName, new { viewModel.Id })));
+
+                            }
+                            break;
+
+                        case BootstrapActionName.Update:
+                            {
+                                var viewModel = (IEntityViewModel)page.Model;
+                                // The Update action gets two breadcrumbs: the model's label...
+                                crumbs.Add(
+                                    new Breadcrumb(
+                                        page.GetModelLabel(),
+                                        page.Url.Action(BootstrapActionName.Read, controllerName, new { viewModel.Id })));
+                                // ... and "Update"
+                                crumbs.Add(
+                                    new Breadcrumb(
+                                        BootstrapActionName.Update,
+                                        page.Url.Action(BootstrapActionName.Update, controllerName)));
+                            }
+                            break;
+
+                        case BootstrapActionName.Delete:
+                            {
+                                var viewModel = (IEntityViewModel)page.Model;
+                                // The Delete action gets two breadcrumbs: the model's label...
+                                crumbs.Add(
+                                    new Breadcrumb(
+                                        page.GetModelLabel(),
+                                        page.Url.Action(
+                                            BootstrapActionName.Read, controllerName, new { viewModel.Id })));
+                                // ... and "Delete"
+                                crumbs.Add(
+                                    new Breadcrumb(
+                                        BootstrapActionName.Delete,
+                                        page.Url.Action(BootstrapActionName.Delete, controllerName)));
+                            }
+                            break;
+                    }
+                }
+                else
+                {
+                    // Controllers that are neither Home nor Bootstrap just add their action
+                    crumbs.Add(new Breadcrumb(actionName, page.Url.Action(actionName, controllerName)));
+                }
+            }
+
+            return crumbs;
+        }
+
+        /// <summary>
+        /// Calculates a label representing <paramref name="page"/>'s <see cref="WebViewPage{TModel}.Model"/>
+        /// </summary>
+        /// <typeparam name="TModel"></typeparam>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public static string GetModelLabel<TModel>(this WebViewPage<TModel> page) where TModel : class
+        {
             string label = null;
             if (page.Model != null)
             {
-                var controllerAsSelectorContainer = page.ViewContext.Controller as IViewModelLabelSelectorContainer<TModel>;
-                if (controllerAsSelectorContainer != null)
-                {
-                    label = controllerAsSelectorContainer.ViewModelLabelSelector.ViewModelLabelSelector(page.Model);
-                }
+                var controller = page.Controller();
+                var controllerType = controller.GetType();
 
-                if (string.IsNullOrWhiteSpace(label) && page.Model.Id.HasValue)
+                // First try to use BootstrapController's label selector
+                if (controllerType.IsConstructedGenericTypeOfDefinition(typeof(IViewModelLabelSelectorContainer<>)))
                 {
-                    crumbs.Add(page.Model.Id.Value.ToString(CultureInfo.InvariantCulture));
-                }
+                    string ownerPropName =
+                        Of<IViewModelLabelSelectorContainer<IEntityViewModel>>.CodeNameFor(
+                            c => c.ViewModelLabelSelectorOwner);
+                    var ownerProp = controllerType.GetProperty(ownerPropName);
+                    object owner = ownerProp.GetValue(controller);
 
-                if (!string.IsNullOrWhiteSpace(label))
+                    string selectorPropName =
+                        Of<IViewModelLabelSelectorOwner<IEntityViewModel>>.CodeNameFor(o => o.ViewModelLabelSelector);
+                    var selectorProp = owner.GetType().GetProperty(selectorPropName);
+                    var selector = (Delegate)selectorProp.GetValue(owner);
+
+                    var modelAsEntityViewModel = (IEntityViewModel)page.Model;
+
+                    // If there are original values, they take precedence over edited ones.
+                    modelAsEntityViewModel = modelAsEntityViewModel.OriginalValues ?? 
+                        modelAsEntityViewModel;
+
+                    label = (string)selector.DynamicInvoke(modelAsEntityViewModel);
+                }
+                else
                 {
-                    crumbs.Add(label);
+                    // Next try an EntityViewModel's Id
+                    var modelAsEntityViewModel = page.Model as IEntityViewModel;
+                    if (modelAsEntityViewModel != null)
+                    {
+                        label = modelAsEntityViewModel.Id.Value.ToString(CultureInfo.InvariantCulture);
+                    }
+                    else
+                    {
+                        // lastly just use .ToString()
+                        label = page.Model.ToString();
+                    }
                 }
             }
 
-            var actionName = page.ActionName();
-            if (actionName != "List" &&
-                actionName != "Read")
-            {
-                crumbs.Add(actionName);
-            }
-
-            return MvcHtmlString.Create(string.Join(" &rsaquo; ", crumbs));
+            return label;
         }
 
-        public static Type EntityType<TModel>(this WebViewPage<TModel> page)
+        #endregion
+
+
+        #region Flash Message Methods
+
+        public static IEnumerable<FlashMessage> ConsumeFlashes<TModel>(this WebViewPage<TModel> page)
         {
-            var controllerType = page.ViewContext.Controller.GetType();
-            if (controllerType.IsAssignableTo(typeof(BootstrapControllerBase<,>)))
+            object flashMessagesObject;
+            if (page.TempData.TryGetValue(ControllerExtensions.FlashMessagesQueueKey, out flashMessagesObject) &&
+                flashMessagesObject is Queue<FlashMessage>)
             {
-                return controllerType.GenericTypeArguments[0];
+                var flashMessages = (Queue<FlashMessage>)flashMessagesObject;
+                var flashes = flashMessages.ToArray();
+                // Clear the queue so that the flashes are not displayed more than once.
+                flashMessages.Clear();
+                return flashes;
             }
 
-            return null;
+            return Enumerable.Empty<FlashMessage>();
         }
 
-
-        public static BootstrapViewHelper<TModel> Bootstrap<TModel>(this WebViewPage<TModel> page)
-        {
-            return new BootstrapViewHelper<TModel>(page);
-        }
+        #endregion
     }
 }

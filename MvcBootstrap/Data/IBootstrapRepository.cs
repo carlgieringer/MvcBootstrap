@@ -115,5 +115,13 @@
         /// The attached entity
         /// </returns>
         TEntity Attach(TEntity entity);
+
+        /// <summary>
+        /// Returns the properties of <paramref name="entity"/> to their original values
+        /// and sets its status to unchanges.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        TEntity Reset(TEntity entity);
     }
 }

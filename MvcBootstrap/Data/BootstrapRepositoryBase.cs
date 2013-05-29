@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
@@ -93,6 +94,23 @@
             attached.Modified = DateTime.Now;
 
             return attached;
+        }
+
+        public TEntity Reset(TEntity entity)
+        {
+            var entry = this.Context.Entry(entity);
+            // (Is null even possible?)
+            if (entry == null)
+            {
+                throw new MvcBootstrapDataException(
+                    "{0} with Id = {1} does not exist.".F(typeof(TEntity).Description(), entity.Id));
+            }
+
+            // Restore the entity to the values it had originally
+            entry.CurrentValues.SetValues(entry.OriginalValues);
+            entry.State = EntityState.Unchanged;
+
+            return entry.Entity;
         }
 
         public TEntity Create()

@@ -11,6 +11,9 @@
         [ScaffoldColumn(false)]
         public IEntityViewModel ConcurrentlyEdited { get; set; }
 
+        [ScaffoldColumn(false)]
+        public IEntityViewModel OriginalValues { get; set; }
+
         [HiddenInput(DisplayValue = false)]
         public virtual byte[] Timestamp { get; set; }
     }

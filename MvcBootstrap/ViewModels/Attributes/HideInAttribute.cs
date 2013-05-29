@@ -14,9 +14,9 @@
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = false)]
     public sealed class HideInAttribute : Attribute
     {
-        public readonly BootstrapAction Actions;
+        public readonly BootstrapActions Actions;
 
-        public HideInAttribute(BootstrapAction actions)
+        public HideInAttribute(BootstrapActions actions)
         {
             this.Actions = actions;
         }

@@ -71,7 +71,7 @@ namespace MvcBootstrap.Web.Mvc.ModelMetadata
             var showInAttribute = attributes.OfType<ShowInAttribute>().SingleOrDefault();
             if (showInAttribute != null) 
             {
-                foreach (BootstrapAction action in Enum.GetValues(typeof(BootstrapAction)))
+                foreach (BootstrapActions action in Enum.GetValues(typeof(BootstrapActions)))
                 {
                     if (showInAttribute.Actions.HasFlag(action))
                     {
@@ -85,7 +85,7 @@ namespace MvcBootstrap.Web.Mvc.ModelMetadata
             var hideInAttribute = attributes.OfType<HideInAttribute>().SingleOrDefault();
             if (hideInAttribute != null)
             {
-                foreach (BootstrapAction action in Enum.GetValues(typeof(BootstrapAction)))
+                foreach (BootstrapActions action in Enum.GetValues(typeof(BootstrapActions)))
                 {
                     if (hideInAttribute.Actions.HasFlag(action))
                     {

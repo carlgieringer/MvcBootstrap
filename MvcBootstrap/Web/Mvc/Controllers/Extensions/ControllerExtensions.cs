@@ -1,5 +1,6 @@
 ﻿namespace MvcBootstrap.Web.Mvc.Controllers.Extensions
 {
+    using System.Collections.Generic;
     using System.IO;
     using System.Web.Mvc;
 
@@ -7,20 +8,22 @@
 
     public static class ControllerExtensions
     {
-        public const string FlashMessageKey = "FlashMessageKey";
-
-        public const string FlashKindKey = "FlashKindKey";
+        public const string FlashMessagesQueueKey = "FlashMessagesKey";
 
         public static void Flash(this Controller controller, string message, FlashKind kind = FlashKind.Info, bool currentViewOnly = false)
         {
-            // Set flash in both view data and temp data so that the flash is displayed in either the current or next view
-            controller.ViewData[FlashMessageKey] = message;
-            controller.ViewData[FlashKindKey] = kind;
-            if (!currentViewOnly)
+            //// Set flash in temp data so that it can be caught after a redirect if necessary; once requested for display in the view, it should be cleared.
+
+            object flashMessagesObject;
+            if (!controller.TempData.TryGetValue(FlashMessagesQueueKey, out flashMessagesObject) ||
+                !(flashMessagesObject is Queue<FlashMessage>))
             {
-                controller.TempData[FlashMessageKey] = message;
-                controller.TempData[FlashKindKey] = kind;
+                flashMessagesObject = new Queue<FlashMessage>();
+                controller.TempData[FlashMessagesQueueKey] = flashMessagesObject;
             }
+
+            var flashMessages = (Queue<FlashMessage>)flashMessagesObject;
+            flashMessages.Enqueue(new FlashMessage(message, kind));
         }
 
         /// <summary>

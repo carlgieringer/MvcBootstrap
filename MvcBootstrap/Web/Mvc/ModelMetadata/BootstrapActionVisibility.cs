@@ -10,11 +10,11 @@
     /// A class implementing <see cref="IDictionary{BootstrapAction, Boolean}"/> for associating
     /// a built-in MvcBootstrap controller action with a visibility.
     /// </summary>
-    public class BootstrapActionVisibility : Dictionary<BootstrapAction, bool>, IDictionary<BootstrapAction, bool>
+    public class BootstrapActionVisibility : Dictionary<BootstrapActions, bool>, IDictionary<BootstrapActions, bool>
     {
         public bool ContainsKey(string bootstrapActionString)
         {
-            BootstrapAction action;
+            BootstrapActions action;
             if (Enum.TryParse(bootstrapActionString, out action))
             {
                 return base.ContainsKey(action);
@@ -25,7 +25,7 @@
 
         public bool TryGetValue(string bootstrapActionString, out bool visible)
         {
-            BootstrapAction action;
+            BootstrapActions action;
             if (Enum.TryParse(bootstrapActionString, out action))
             {
                 return base.TryGetValue(action, out visible);
@@ -39,10 +39,10 @@
         {
             get
             {
-                BootstrapAction action;
+                BootstrapActions action;
                 if (!Enum.TryParse(bootstrapActionString, out action))
                 {
-                    throw new InvalidOperationException("{0} is not a valid {1}".F(bootstrapActionString, typeof(BootstrapAction).Name));
+                    throw new InvalidOperationException("{0} is not a valid {1}".F(bootstrapActionString, typeof(BootstrapActions).Name));
                 }
 
                 return base[action];
@@ -50,10 +50,10 @@
 
             set
             {
-                BootstrapAction action;
+                BootstrapActions action;
                 if (!Enum.TryParse(bootstrapActionString, out action))
                 {
-                    throw new InvalidOperationException("{0} is not a valid {1}".F(bootstrapActionString, typeof(BootstrapAction).Name));
+                    throw new InvalidOperationException("{0} is not a valid {1}".F(bootstrapActionString, typeof(BootstrapActions).Name));
                 }
 
                 base[action] = value;

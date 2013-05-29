@@ -2,7 +2,6 @@
 {
     using System.Web.Mvc;
 
-    using MvcBootstrap.Models;
     using MvcBootstrap.ViewModels;
 
     public interface IBootstrapController<TViewModel> : 

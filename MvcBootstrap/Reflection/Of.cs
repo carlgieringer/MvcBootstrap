@@ -1,15 +1,12 @@
 ﻿namespace TEMTDomain.StaticLib
 {
     using System;
-    using System.Collections.Generic;
     using System.ComponentModel;
     using System.Linq.Expressions;
     using System.Reflection;
     using System.Web.Mvc;
 
-    using System.Text.RegularExpressions;
-
-    using MvcBootstrap.Reflection;
+    using MvcBootstrap.Util;
 
     public static class Of<T>
     {
@@ -50,7 +47,7 @@
             }
             if (description == null)
             {
-                description = StringHelper.InsertSpacesBetweenCamelCaseWords(pi.Name);
+                description = StringHelper.SplitCamelCase(pi.Name);
             }
 
             return description;

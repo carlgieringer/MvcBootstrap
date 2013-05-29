@@ -5,19 +5,9 @@ Deep projecting of Automapper mapped properties?
 
 client-side validation
 
-user accounts
-
-Handle multiple flashes and display all separately.
-
 Handle navigation properties in optimistic concurrency errors.
 
 Replace use of ViewData.Title with SiteViewModel.Title or something... it can conflict with ViewModel.Title!
-
-Move WebViewPageExtension methods into BootstrapViewHelper adapter (testable, consistent)
-
-Make Delete a view (too many times I worry about deleting the entity (or add Undo!?)
-
-Edit Employee, submit with validation error (blank name), then cancel.  The Flash error appears on the Read page too.
 
 Compile razor views/templates into separate DLL
 http://razorgenerator.codeplex.com/
@@ -26,8 +16,6 @@ Original older article: http://www.chrisvandesteeg.nl/2010/11/22/embedding-pre-c
 Convert as much as possible of entity config to config classes; use inheritance of config classes?
 
 Cut out as much DotNetOpenAuth as I can (compare with empty MVC4 Internet Application.)
-
-Consolidate .Bootstrap() page helper; .Bootstrap().ControlGroupFor(...)
 
 jquery validation
 https://github.com/jzaefferer/jquery-validation

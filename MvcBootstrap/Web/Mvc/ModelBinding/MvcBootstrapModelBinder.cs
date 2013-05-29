@@ -46,11 +46,11 @@
             {
                 binding = BindEntityViewModel(bindingContext);
             }
-            else if (bindingModelType.IsConstructedGenericTypeFor(typeof(Choice<>)))
+            else if (bindingModelType.IsConstructedGenericTypeOfDefinition(typeof(Choice<>)))
             {
                 binding = BindChoice(bindingContext);
             }
-            else if (bindingModelType.IsConstructedGenericTypeFor(typeof(Choices<>)))
+            else if (bindingModelType.IsConstructedGenericTypeOfDefinition(typeof(Choices<>)))
             {
                 binding = BindChoices(bindingContext);
             }

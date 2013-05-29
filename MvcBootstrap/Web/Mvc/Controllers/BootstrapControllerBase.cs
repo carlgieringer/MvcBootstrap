@@ -1,5 +1,6 @@
 ﻿namespace MvcBootstrap.Web.Mvc.Controllers
 {
+    using System;
     using System.Collections.Generic;
     using System.Data.Entity.Validation;
     using System.Linq;
@@ -54,7 +55,7 @@
 
         #region Properties
 
-        public IViewModelLabelSelectorOwner<TViewModel> ViewModelLabelSelector
+        public IViewModelLabelSelectorOwner<TViewModel> ViewModelLabelSelectorOwner
         {
             get
             {
@@ -116,14 +117,34 @@
             {
                 var entity = Mapper.Map<TEntity>(viewModel);
                 entity = this.Repository.Add(entity);
-                this.Repository.SaveChanges();
+                try
+                {
+                    this.Repository.SaveChanges();
+                }
+                catch (DbEntityValidationException ex)
+                {
+                    var errorKeyAndMessages = GetEntityValidationErrorKeyAndMessages(ex, entity);
+                    foreach (var errorKeyAndMessage in errorKeyAndMessages)
+                    {
+                        this.ModelState.AddModelError(errorKeyAndMessage.ErrorKey, errorKeyAndMessage.ErrorMessage);
+                    }
 
-                this.Flash(
-                    @"{0} ""{1}"" Created".F(typeof(TEntity).Description(), this.Config.EntityLabelSelector(entity)),
-                    FlashKind.Success);
+                    this.Flash(
+                        @"Failed to create {0}".F(typeof(TEntity).Description()),
+                        FlashKind.Error);
+                }
 
-                return this.RedirectToAction("List");
+                if (this.ModelState.IsValid)
+                {
+                    this.Flash(
+                        @"Created {0} ""{1}""".F(typeof(TEntity).Description(), this.Config.EntityLabelSelector(entity)),
+                        FlashKind.Success);
+
+                    return this.RedirectToAction("List");
+                }
             }
+
+            viewModel = this.RefreshViewModel(viewModel);
 
             return this.View(this.Config.CreateViewName, viewModel);
         }
@@ -199,32 +220,55 @@
                         this.ModelState.AddModelError(errorKeyAndMessage.ErrorKey, errorKeyAndMessage.ErrorMessage);
                     }
 
+                    entity = this.Repository.Reset(entity);
+                    viewModel.OriginalValues = Mapper.Map<TViewModel>(entity);
+
                     this.Flash(
-                        @"Failed to save {0} ""{1}""".F(typeof(TEntity).Description(), this.Config.EntityLabelSelector(entity)),
+                        @"Failed to update {0} ""{1}""".F(typeof(TEntity).Description(), this.Config.EntityLabelSelector(entity)),
                         FlashKind.Error);
                 }
 
                 if (this.ModelState.IsValid)
                 {
                     this.Flash(
-                        @"{0} ""{1}"" Updated".F(typeof(TEntity).Description(), this.Config.EntityLabelSelector(entity)),
+                        @"Updated {0} ""{1}""".F(typeof(TEntity).Description(), this.Config.EntityLabelSelector(entity)),
                         FlashKind.Success);
 
                     return this.RedirectToAction("List");
                 }
             }
 
-            // For now the easiest way to populate related entity view model choices is to map from an entity
-            // So start with a fresh entity...
-            var tempEntity = this.Repository.GetById(viewModel.Id.Value);
-
-            // Map the view model changes to it...
-            tempEntity = Mapper.Map(viewModel, tempEntity);
-            
-            // And then map back to the viewModel to set the related entity view model choices.
-            viewModel = Mapper.Map(tempEntity, viewModel);
+            viewModel = this.RefreshViewModel(viewModel);
 
             return this.View(this.Config.UpdateViewName, viewModel);
+        }
+
+        /// <summary>
+        /// Performs a mapping to <paramref name="viewModel"/> to ensure that it properties are set correctly for
+        /// re-display.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Choice{T}.Options"/> and <see cref="Choices{T}.Options"/> will not have been set by model
+        /// binding because the model binder does not know <typeparamref name="TEntity"/> in order to retrieve
+        /// an instance of <typeparamref name="TEntity"/> from a repository, and the choice options can only
+        /// be set from knowing the instance.
+        /// </remarks>
+        /// <param name="viewModel"></param>
+        /// <returns></returns>
+        private TViewModel RefreshViewModel(TViewModel viewModel)
+        {
+            // Start with a fresh entity...
+            var freshEntity = viewModel.Id.HasValue ?
+                this.Repository.GetById(viewModel.Id.Value) :
+                this.Repository.Create();
+
+            // Map the view model changes to it...
+            freshEntity = Mapper.Map(viewModel, freshEntity);
+
+            // And then map back to the viewModel to set the choice options.
+            viewModel = Mapper.Map(freshEntity, viewModel);
+
+            return viewModel;
         }
 
         [HttpGet]

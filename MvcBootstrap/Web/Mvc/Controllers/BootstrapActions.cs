@@ -6,7 +6,7 @@
     /// Identifies the built-in Bootstrap controller actions
     /// </summary>
     [Flags]
-    public enum BootstrapAction
+    public enum BootstrapActions
     {
         List,
         Create,

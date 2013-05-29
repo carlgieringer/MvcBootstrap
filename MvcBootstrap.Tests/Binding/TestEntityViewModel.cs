@@ -15,6 +15,8 @@ namespace MvcBootstrap.Tests.Binding
 
         public IEntityViewModel ConcurrentlyEdited { get; set; }
 
+        public IEntityViewModel OriginalValues { get; set; }
+
         public Choice<TestEntityViewModel> Choice { get; set; } 
     }
 }

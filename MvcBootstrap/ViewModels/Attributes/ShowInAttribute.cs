@@ -15,9 +15,9 @@
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = false)]
     public sealed class ShowInAttribute : Attribute
     {
-        public readonly BootstrapAction Actions;
+        public readonly BootstrapActions Actions;
 
-        public ShowInAttribute(BootstrapAction actions)
+        public ShowInAttribute(BootstrapActions actions)
         {
             this.Actions = actions;
         }

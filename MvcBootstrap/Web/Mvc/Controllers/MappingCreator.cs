@@ -49,6 +49,7 @@
             return
                 Mapper.CreateMap<TAnyEntity, TAnyViewModel>()
                     .ForMember(vm => vm.ConcurrentlyEdited, o => o.Ignore())
+                    .ForMember(vm => vm.OriginalValues, o => o.Ignore())
                     .ForMember(vm => vm.Id, o => o.ResolveUsing(e => e.Id == 0 ? (int?)null : e.Id));
         }
 
@@ -153,7 +154,7 @@
                 if (destProp != null)
                 {
                     if (sourceProp.PropertyType.IsAssignableTo(typeof(IEntity))
-                        && destProp.PropertyType.IsConstructedGenericTypeFor(typeof(Choice<>)))
+                        && destProp.PropertyType.IsConstructedGenericTypeOfDefinition(typeof(Choice<>)))
                     {
                         var destChoiceType = destProp.PropertyType.GetGenericArguments().First();
 
@@ -167,8 +168,8 @@
                         // Create mapping expressions from the property to the selection type of the choice/choices (and vice-versa)
                         this.AddMappingsToFrom(sourceProp.PropertyType, destChoiceType);
                     }
-                    else if (sourceProp.PropertyType.IsConstructedGenericTypeFor(typeof(ICollection<>), typeof(IEntity))
-                             && destProp.PropertyType.IsConstructedGenericTypeFor(typeof(Choices<>)))
+                    else if (sourceProp.PropertyType.IsConstructedGenericTypeOfDefinitionWith(typeof(ICollection<>), typeof(IEntity))
+                             && destProp.PropertyType.IsConstructedGenericTypeOfDefinition(typeof(Choices<>)))
                     {
                         var sourceEntityType = sourceProp.PropertyType.GetGenericArguments().First();
                         var destChoicesType = destProp.PropertyType.GetGenericArguments().First();

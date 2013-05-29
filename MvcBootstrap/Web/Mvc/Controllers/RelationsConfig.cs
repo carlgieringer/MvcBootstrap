@@ -40,7 +40,7 @@
                 var memberName = ExpressionHelper.GetExpressionText(memberExpression);
                 return new RelatedEntitiesConfigFluentAdapter<TEntity>(this, memberName);
             }
-            else if (relatedType.IsConstructedGenericTypeFor(typeof(ICollection<>), typeof(IEntity)))
+            else if (relatedType.IsConstructedGenericTypeOfDefinitionWith(typeof(ICollection<>), typeof(IEntity)))
             {
                 var memberName = ExpressionHelper.GetExpressionText(memberExpression);
                 return new RelatedEntitiesConfigFluentAdapter<TEntity>(this, memberName);
