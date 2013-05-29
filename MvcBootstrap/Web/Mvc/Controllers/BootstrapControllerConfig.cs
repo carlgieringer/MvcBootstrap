@@ -6,7 +6,7 @@
     using MvcBootstrap.Web.Mvc.Controllers.FluentConfig;
 
     public class BootstrapControllerConfig<TEntity, TViewModel> : 
-        IViewModelLabelSelector<TViewModel>
+        IViewModelLabelSelectorOwner<TViewModel>
     {
         public BootstrapControllerConfig()
         {
@@ -21,7 +21,7 @@
         public string ListViewName { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the view that the <see cref="BootstrapControllerBase{TEntity, TViewModel}.Create"/> action renders.
+        /// Gets or sets the name of the view that the <see cref="BootstrapControllerBase{TEntity, TViewModel}.Create()"/> action renders.
         /// </summary>
         public string CreateViewName { get; set; }
 
@@ -31,9 +31,14 @@
         public string ReadViewName { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the view that the <see cref="BootstrapControllerBase{TEntity, TViewModel}.Update"/> action renders.
+        /// Gets or sets the name of the view that the <see cref="BootstrapControllerBase{TEntity, TViewModel}.Update(Int32)"/> action renders.
         /// </summary>
         public string UpdateViewName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the view that the <see cref="BootstrapControllerBase{TEntity, TViewModel}.Delete(Int32)"/> action renders.
+        /// </summary>
+        public string DeleteViewName { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating the sort order of this controller's displayed entities.

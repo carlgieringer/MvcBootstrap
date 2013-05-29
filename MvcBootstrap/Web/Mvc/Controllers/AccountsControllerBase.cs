@@ -329,9 +329,9 @@
                         });
             }
 
-            this.ViewBag.ShowRemoveButton = externalLogins.Count > 1
-                                            || OAuthWebSecurity.HasLocalAccount(
-                                                WebSecurity.GetUserId(this.User.Identity.Name));
+            this.ViewBag.ShowRemoveButton = 
+                externalLogins.Count > 1 || 
+                OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(this.User.Identity.Name));
             return this.PartialView("_RemoveExternalLoginsPartial", externalLogins);
         }
 

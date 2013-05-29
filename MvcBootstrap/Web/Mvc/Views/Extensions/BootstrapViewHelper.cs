@@ -27,14 +27,32 @@
 
             string label;
 
-            var controllerAsSelectorContainer = this.page.ViewContext.Controller as IRelatedViewModelLabelSelectorContainer;
-            if (controllerAsSelectorContainer != null)
+            var controllerContainer = this.page.ViewContext.Controller as IRelatedViewModelLabelSelectorContainer;
+            if (controllerContainer != null)
             {
-                label = controllerAsSelectorContainer.RelatedViewModelLabelSelector.GetRelatedViewModelLabel(propertyName, viewModel);
+                label = controllerContainer.RelatedViewModelLabelSelector.GetRelatedViewModelLabel(propertyName, viewModel);
             }
             else
             {
                 label = viewModel.ToString();
+            }
+
+            return MvcHtmlString.Create(label);
+        }
+
+        public MvcHtmlString ViewModelLabelForModel()
+        {
+            string label;
+
+            var controllerAsContainer = this.page.ViewContext.Controller as IViewModelLabelSelectorContainer<IEntityViewModel>;
+            var modelAsEntityViewModel = this.page.Model as IEntityViewModel;
+            if (controllerAsContainer != null && modelAsEntityViewModel != null)
+            {
+                label = controllerAsContainer.ViewModelLabelSelector.ViewModelLabelSelector(modelAsEntityViewModel);
+            }
+            else
+            {
+                label = this.page.Model.ToString();
             }
 
             return MvcHtmlString.Create(label);
@@ -98,7 +116,8 @@
             return this.page.Html.ActionLink("Edit", updateAction, new { id }, new { @class = "btn btn-primary" });
         }
 
-        public MvcHtmlString ActionLink<ControllerT>(string linkText, Expression<Func<ControllerT, ActionResult>> action, object htmlAttributes = null) where ControllerT : IController
+        public MvcHtmlString ActionLink<TController>(string linkText, Expression<Func<TController, ActionResult>> action, object htmlAttributes = null) 
+            where TController : IController
         {
             var routeValues = new RouteValueDictionary();
 
@@ -140,6 +159,11 @@
         public MvcHtmlString Submit(string value)
         {
             return this.page.Html.Submit(value, new { @class = "btn btn-primary" });
+        }
+
+        public MvcHtmlString Submit(string value, object htmlAttributes)
+        {
+            return this.page.Html.Submit(value, htmlAttributes);
         }
 
         public MvcHtmlString LabelFor<TValue>(Expression<Func<TModel, TValue>> expression)

@@ -2,7 +2,7 @@
 {
     using System;
 
-    public interface IViewModelLabelSelector<in TViewModel>
+    public interface IViewModelLabelSelectorOwner<in TViewModel>
     {
         Func<TViewModel, string> ViewModelLabelSelector { get; }
     }

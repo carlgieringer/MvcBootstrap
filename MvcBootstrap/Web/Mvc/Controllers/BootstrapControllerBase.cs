@@ -54,7 +54,7 @@
 
         #region Properties
 
-        public IViewModelLabelSelector<TViewModel> ViewModelLabelSelector
+        public IViewModelLabelSelectorOwner<TViewModel> ViewModelLabelSelector
         {
             get
             {
@@ -227,10 +227,28 @@
             return this.View(this.Config.UpdateViewName, viewModel);
         }
 
-        [HttpPost]
+        [HttpGet]
         public ActionResult Delete(int id)
         {
             var entity = this.Repository.GetById(id);
+            if (entity == null)
+            {
+                return this.HttpNotFound();
+            }
+
+            var viewModel = Mapper.Map<TViewModel>(entity);
+            return this.View(this.Config.DeleteViewName, viewModel);
+        }
+
+        [HttpPost]
+        public ActionResult Delete(TViewModel viewModel)
+        {
+            if (!viewModel.Id.HasValue)
+            {
+                return this.HttpNotFound();
+            }
+
+            var entity = this.Repository.GetById(viewModel.Id.Value);
             if (entity == null)
             {
                 return this.HttpNotFound();
