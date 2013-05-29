@@ -9,7 +9,7 @@ This framework is in development and currently offers no guarantee as to backwar
 version, then the 1.0 features will be maintained with backwards compatibility.
 
 Current features of interest are built-in CRUD actions with integrated Entity/ViewModel mapping provided by 
-[BaseBootstrapController](https://github.com/carlgieringer/MvcBootstrap/blob/master/MvcBootstrap/Web/Mvc/Controllers/BootstrapControllerBase.cs).
+[BootstrapControllerBase](https://github.com/carlgieringer/MvcBootstrap/blob/master/MvcBootstrap/Web/Mvc/Controllers/BootstrapControllerBase.cs).
 This controller also offers automated support for Optimistic Concurrency in conjunction with 
 [IEntity](https://github.com/carlgieringer/MvcBootstrap/blob/master/MvcBootstrap/Models/IEntity.cs) and 
 [IEntityViewModel](https://github.com/carlgieringer/MvcBootstrap/blob/master/MvcBootstrap/ViewModels/IEntityViewModel.cs)
