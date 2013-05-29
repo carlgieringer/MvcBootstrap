@@ -104,7 +104,7 @@
             return this.View(this.Config.CreateViewName, viewModel);
         }
 
-        [HttpPost]
+        [HttpPost, ValidateAntiForgeryToken]
         public ActionResult Create(TViewModel viewModel)
         {
             if (viewModel.Id.HasValue)
@@ -153,7 +153,7 @@
             return this.View(this.Config.UpdateViewName, viewModel);
         }
 
-        [HttpPost]
+        [HttpPost, ValidateAntiForgeryToken]
         public ActionResult Update(TViewModel viewModel)
         {
             if (!viewModel.Id.HasValue)
