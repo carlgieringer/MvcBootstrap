@@ -1,10 +1,6 @@
 ﻿namespace MvcBootstrap.Web.Mvc.Views.Extensions
 {
     using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Design.PluralizationServices;
-    using System.Globalization;
-    using System.Linq;
     using System.Linq.Expressions;
     using System.Web.Mvc;
     using System.Web.Mvc.Html;
@@ -107,27 +103,6 @@
             }
 
             return this.page.Html.ActionLink(linkText, actionName, routeValues, HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes));
-        }
-
-        public string Pluralize<T>(string target, IEnumerable<T> enumerable)
-        {
-            return this.Pluralize(target, enumerable.Count());
-        }
-
-        public string Pluralize(string target, int count)
-        {
-            string result;
-            var ps = PluralizationService.CreateService(CultureInfo.CurrentCulture);
-            if (ps.IsPlural(target))
-            {
-                result = count != 1 ? target : ps.Singularize(target);
-            }
-            else
-            {
-                result = count == 1 ? target : ps.Pluralize(target);
-            }
-
-            return result;
         }
 
         public MvcHtmlString CancelLink()

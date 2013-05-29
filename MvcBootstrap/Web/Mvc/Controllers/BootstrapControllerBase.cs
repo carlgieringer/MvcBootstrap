@@ -85,7 +85,7 @@
         [HttpGet]
         public ActionResult List()
         {
-            var entities = this.Repository.Items.AsEnumerable();
+            var entities = this.Repository.GetAll();
 
             if (this.Config.Sort != null)
             {

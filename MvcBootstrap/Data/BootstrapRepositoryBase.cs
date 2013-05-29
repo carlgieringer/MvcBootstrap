@@ -15,20 +15,35 @@
     public abstract class BootstrapRepositoryBase<TEntity> : IBootstrapRepository<TEntity>
         where TEntity : class, IEntity, new()
     {
+        #region Constructors
+
         public BootstrapRepositoryBase(DbContext context)
         {
             this.Context = context;
         }
 
-        internal DbContext Context { get; private set; }
+        #endregion
 
-        public virtual IQueryable<TEntity> Items
+
+        #region Properties
+
+        /// <summary>
+        /// Gets the repository's entities as a queryable interface.
+        /// </summary>
+        protected IQueryable<TEntity> Items
         {
             get
             {
                 return this.Context.Set<TEntity>();
             }
         }
+
+        private DbContext Context { get; set; }
+
+        #endregion
+
+
+        #region IBootstrapRepository Methods
 
         public TEntity Add(TEntity entity)
         {
@@ -62,7 +77,8 @@
             var attached = this.GetById(entity.Id);
             if (attached == null)
             {
-                throw new MvcBootstrapDataException("{0} with Id = {1} does not exist.".F(typeof(TEntity).Description(), entity.Id));
+                throw new MvcBootstrapDataException(
+                    "{0} with Id = {1} does not exist.".F(typeof(TEntity).Description(), entity.Id));
             }
 
             var entry = this.Context.Entry(attached);
@@ -73,7 +89,7 @@
 
             // Update the context entry to reflect the values passed in with the parameter
             entry.CurrentValues.SetValues(entity);
-            
+
             attached.Modified = DateTime.Now;
 
             return attached;
@@ -82,8 +98,19 @@
         public TEntity Create()
         {
             var entity = this.Context.Set<TEntity>().Create();
+            
             entity.Created = DateTime.Now;
             entity.Modified = DateTime.Now;
+
+            this.OnCreate(entity);
+            
+            return entity;
+        }
+
+        public TEntity CreateAndAdd()
+        {
+            var entity = this.Create();
+            entity = this.Add(entity);
             return entity;
         }
 
@@ -147,6 +174,30 @@
             return attached;
         }
 
+        #endregion
+
+
+        #region Extension Points
+
+        /// <summary>
+        /// Allows implementers to respond to the creation of a new entity, e.g.
+        /// setting additional properties to initial values.
+        /// </summary>
+        /// <remarks>
+        /// Implementers should not add <paramref name="entity"/> to the context;
+        /// instead use <see cref="CreateAndAdd"/>.
+        /// </remarks>
+        /// <param name="entity"></param>
+        public virtual void OnCreate(TEntity entity)
+        {
+            // Base implementation does nothing.
+        }
+
+        #endregion
+
+
+        #region Private Helper Methods
+
         private void updateObjectFromPredicate(object entity, Expression predicate)
         {
             switch (predicate.NodeType)
@@ -170,20 +221,20 @@
                         case ExpressionType.MemberAccess:
                             // http://stackoverflow.com/a/2616959/39396
                             var memberAccesss = (MemberExpression)equal.Right;
-                            
+
                             // Compiler has generated a closure class for the member access
                             // First get the expression where the compiler is accessing the closure's enclosed member-owner
                             var closureAccess = (MemberExpression)memberAccesss.Expression;
-                            
+
                             // Then get the closure itself (not sure why it is a constant expression, but it is.  I guess the C# specification would explain why.)
                             var closure = (ConstantExpression)closureAccess.Expression;
-                            
+
                             // Applying the closureAccess to the closure yields the enclosed member-owner, which actually owns the value we're interested in.
                             var memberOwner = ((FieldInfo)closureAccess.Member).GetValue(closure.Value);
-                            
+
                             // Applying the memberAccess to the memberOwner yields the value.
                             value = ((PropertyInfo)memberAccesss.Member).GetValue(memberOwner, null);
-                            
+
                             // This technique has not been tested against multiple levels of member access, e.g., x => x.Name == Grandparent.Parent.Name.
                             break;
 
@@ -202,5 +253,7 @@
                     throw new InvalidOperationException(message);
             }
         }
+
+        #endregion
     }
 }

@@ -10,11 +10,6 @@
     public interface IBootstrapRepository<TEntity> where TEntity : class, IEntity
     {
         /// <summary>
-        /// Gets the repository's entities as a queryable interface.
-        /// </summary>
-        IQueryable<TEntity> Items { get; }
-
-        /// <summary>
         /// Adds <paramref name="entity"/> to the underlying context in the modified state.
         /// </summary>
         /// <param name="entity"></param>
@@ -42,12 +37,24 @@
         /// <see cref="IEntity.Modified"/> set to <see cref="DateTime.Now"/>.  
         /// </summary>
         /// <remarks>
-        /// The returned instance is not added or attached to repository's context.
+        /// The returned instance is not added or attached to the repository's context.
         /// </remarks>
         /// <returns>
         /// A new instance of <see cref="TEntity"/>
         /// </returns>
         TEntity Create();
+
+        /// <summary>
+        /// Creates a new instance of <see cref="TEntity"/> with <see cref="IEntity.Created"/> and
+        /// <see cref="IEntity.Modified"/> set to <see cref="DateTime.Now"/>.  
+        /// </summary>
+        /// <remarks>
+        /// The returned instance is added to the repository's context.
+        /// </remarks>
+        /// <returns>
+        /// A new instance of <see cref="TEntity"/>
+        /// </returns>
+        TEntity CreateAndAdd();
 
         /// <summary>
         /// Gets the <see cref="TEntity"/> with <see cref="IEntityId"/> equal to <paramref name="id"/>

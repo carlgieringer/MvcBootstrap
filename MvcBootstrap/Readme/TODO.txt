@@ -18,3 +18,11 @@ Move WebViewPageExtension methods into BootstrapViewHelper adapter (testable, co
 Make Delete a view (too many times I worry about deleting the entity (or add Undo!?)
 
 Edit Employee, submit with validation error (blank name), then cancel.  The Flash error appears on the Read page too.
+
+Compile razor views/templates into separate DLL
+http://razorgenerator.codeplex.com/
+Original older article: http://www.chrisvandesteeg.nl/2010/11/22/embedding-pre-compiled-razor-views-in-your-dll/
+
+Convert as much as possible of entity config to config classes; use inheritance of config classes?
+
+Cut out as much DotNetOpenAuth as I can (compare with empty MVC4 Internet Application.)
