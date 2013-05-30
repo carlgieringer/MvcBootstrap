@@ -5,9 +5,9 @@
 
     public class UserProfileBase : EntityBase, IUserProfile
     {
-        public string Username { get; set; }
+        public virtual string Username { get; set; }
 
-        public DateTime LastLogin { get; set; }
+        public virtual DateTime LastLogin { get; set; }
     }
 
     public class UserProfileConfiguration : EntityTypeConfiguration<UserProfileBase>

@@ -123,15 +123,15 @@
                 }
                 catch (DbEntityValidationException ex)
                 {
+                    this.ModelState.AddModelError(
+                        string.Empty,
+                        @"Unable to create the {0}:".F(typeof(TEntity).Description()));
+
                     var errorKeyAndMessages = GetEntityValidationErrorKeyAndMessages(ex, entity);
                     foreach (var errorKeyAndMessage in errorKeyAndMessages)
                     {
                         this.ModelState.AddModelError(errorKeyAndMessage.ErrorKey, errorKeyAndMessage.ErrorMessage);
                     }
-
-                    this.Flash(
-                        @"Failed to create {0}".F(typeof(TEntity).Description()),
-                        FlashKind.Error);
                 }
 
                 if (this.ModelState.IsValid)
@@ -142,6 +142,12 @@
 
                     return this.RedirectToAction("List");
                 }
+            }
+            else
+            {
+                this.ModelState.AddModelError(
+                    string.Empty,
+                    @"Unable to create the {0}:".F(typeof(TEntity).Description()));
             }
 
             viewModel = this.RefreshViewModel(viewModel);
@@ -201,31 +207,24 @@
                     // Update the timestamp so that the user can submit the newly entered values.
                     viewModel.Timestamp = originalViewModel.Timestamp;
 
-                    const string ErrorMessageFormat = "The {0} has been edited since you requested it.  "
-                                             + "Please ensure the correct values are below.  "
+                    const string ErrorMessageFormat = "Someone edited the {0} before you saved.  "
+                                             + "Please review the new values below next to yours.  "
                                              + "Cancel to leave the new current values.";
                     this.ModelState.AddModelError(
                         string.Empty, 
                         string.Format(ErrorMessageFormat, typeof(TViewModel).Description()));
-
-                    this.Flash(
-                        "An edit conflict occurred.",
-                        FlashKind.Error);
                 }
                 catch (DbEntityValidationException ex)
                 {
+                    this.ModelState.AddModelError(
+                        string.Empty,
+                        @"Unable to update the {0}:".F(typeof(TEntity).Description()));
+
                     var errorKeyAndMessages = GetEntityValidationErrorKeyAndMessages(ex, entity);
                     foreach (var errorKeyAndMessage in errorKeyAndMessages)
                     {
                         this.ModelState.AddModelError(errorKeyAndMessage.ErrorKey, errorKeyAndMessage.ErrorMessage);
                     }
-
-                    entity = this.Repository.Reset(entity);
-                    viewModel.OriginalValues = Mapper.Map<TViewModel>(entity);
-
-                    this.Flash(
-                        @"Failed to update {0} ""{1}""".F(typeof(TEntity).Description(), this.Config.EntityLabelSelector(entity)),
-                        FlashKind.Error);
                 }
 
                 if (this.ModelState.IsValid)
@@ -237,38 +236,22 @@
                     return this.RedirectToAction("List");
                 }
             }
+            else
+            {
+                this.ModelState.AddModelError(
+                    string.Empty,
+                    @"Unable to update the {0}:".F(typeof(TEntity).Description()));
+            }
 
             viewModel = this.RefreshViewModel(viewModel);
 
+            // Since we got here, there was some validation problem.  So load the OriginalValues.
+            // Reset the entity before mapping it because it will have altered values from the viewmodel mapping
+            // above or even the RefreshViewModel can affect another entity.
+            entity = this.Repository.Reset(entity);
+            viewModel.OriginalValues = Mapper.Map<TViewModel>(entity);
+
             return this.View(this.Config.UpdateViewName, viewModel);
-        }
-
-        /// <summary>
-        /// Performs a mapping to <paramref name="viewModel"/> to ensure that it properties are set correctly for
-        /// re-display.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="Choice{T}.Options"/> and <see cref="Choices{T}.Options"/> will not have been set by model
-        /// binding because the model binder does not know <typeparamref name="TEntity"/> in order to retrieve
-        /// an instance of <typeparamref name="TEntity"/> from a repository, and the choice options can only
-        /// be set from knowing the instance.
-        /// </remarks>
-        /// <param name="viewModel"></param>
-        /// <returns></returns>
-        private TViewModel RefreshViewModel(TViewModel viewModel)
-        {
-            // Start with a fresh entity...
-            var freshEntity = viewModel.Id.HasValue ?
-                this.Repository.GetById(viewModel.Id.Value) :
-                this.Repository.Create();
-
-            // Map the view model changes to it...
-            freshEntity = Mapper.Map(viewModel, freshEntity);
-
-            // And then map back to the viewModel to set the choice options.
-            viewModel = Mapper.Map(freshEntity, viewModel);
-
-            return viewModel;
         }
 
         [HttpGet]
@@ -301,7 +284,16 @@
             var entityLabel = this.Config.EntityLabelSelector(entity);
 
             this.Repository.Delete(entity);
-            this.Repository.SaveChanges();
+            try
+            {
+                this.Repository.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                this.ModelState.AddModelError(
+                    string.Empty,
+                    @"Unable to delete the {0}: {1}".F(typeof(TEntity).Description(), ex.Message));
+            }
 
             this.Flash(@"{0} ""{1}"" Deleted".F(typeof(TEntity).Description(), entityLabel), FlashKind.Success);
             return this.RedirectToAction("List");
@@ -382,6 +374,34 @@
             }
 
             return sortedEntities;
+        }
+
+        /// <summary>
+        /// Performs a mapping to <paramref name="viewModel"/> to ensure that it properties are set correctly for
+        /// re-display.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Choice{T}.Options"/> and <see cref="Choices{T}.Options"/> will not have been set by model
+        /// binding because the model binder does not know <typeparamref name="TEntity"/> in order to retrieve
+        /// an instance of <typeparamref name="TEntity"/> from a repository, and the choice options can only
+        /// be set from knowing the instance.
+        /// </remarks>
+        /// <param name="viewModel"></param>
+        /// <returns></returns>
+        private TViewModel RefreshViewModel(TViewModel viewModel)
+        {
+            // Start with a fresh entity...
+            var freshEntity = viewModel.Id.HasValue ?
+                this.Repository.GetById(viewModel.Id.Value) :
+                this.Repository.Create();
+
+            // Map the view model changes to it...
+            freshEntity = Mapper.Map(viewModel, freshEntity);
+
+            // And then map back to the viewModel to set the choice options.
+            viewModel = Mapper.Map(freshEntity, viewModel);
+
+            return viewModel;
         }
 
         #endregion

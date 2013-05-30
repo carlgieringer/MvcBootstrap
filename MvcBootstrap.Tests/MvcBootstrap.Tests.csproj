@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="Binding\ChoicesBindingTests.cs" />
     <Compile Include="Binding\ChoiceBindingTests.cs" />
+    <Compile Include="Controllers\ViewModelOriginalValuesFixture.cs" />
     <Compile Include="Mapping\ChoiceMappingTests.cs" />
     <Compile Include="Mapping\SelfReferentialEntity.cs" />
     <Compile Include="Mapping\SelfReferentialEntityViewModel.cs" />
