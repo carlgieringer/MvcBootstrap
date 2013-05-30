@@ -2,11 +2,10 @@ namespace MvcBootstrap.ViewModels.Accounts
 {
     using System.ComponentModel.DataAnnotations;
 
-    public class RegisterModel
+    public class RegistrationModel<TUserProfileViewModel> 
+        where TUserProfileViewModel : class
     {
-        [Required]
-        [Display(Name = "Username")]
-        public string Username { get; set; }
+        public TUserProfileViewModel UserProfileViewModel { get; set; }
 
         [Required]
         [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]

@@ -5,10 +5,13 @@
     using System.Data;
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
+    using System.Data.Entity.Validation;
+    using System.Data.Objects;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
 
+    using MvcBootstrap.Data.Extensions;
     using MvcBootstrap.Extensions;
     using MvcBootstrap.Models;
     using MvcBootstrap.Reflection;
@@ -58,6 +61,11 @@
             try
             {
                 this.Context.SaveChanges();
+            }
+            catch (DbEntityValidationException ex)
+            {
+                // Transform the exception into another with a meaningful error message
+                throw new BootstrapDbEntityValidationException(ex.ToErrorMessage(), ex);
             }
             catch (DbUpdateConcurrencyException ex)
             {

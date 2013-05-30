@@ -324,23 +324,28 @@
             ModelBindingContext bindingContext, 
             PropertyDescriptor propertyDescriptor)
         {
-            if (propertyDescriptor.PropertyType == typeof(DateTime))
-            {
-                string propertyName = propertyDescriptor.Name;
-                string attemptedValue = bindingContext.ValueProvider.GetValue(propertyName).AttemptedValue;
+            //if (propertyDescriptor.PropertyType == typeof(DateTime))
+            //{
+            //    string propertyName = propertyDescriptor.Name;
+            //    var provider = bindingContext.ValueProvider.GetValue(propertyName);
+            //    if (provider != null)
+            //    {
+            //        string attemptedValue = provider.AttemptedValue;
 
-                if (!string.IsNullOrEmpty(attemptedValue))
-                {
-                    try
-                    {
-                        var date = DateTime.Parse(attemptedValue);
-                    }
-                    catch (FormatException ex)
-                    {
-                        bindingContext.ModelState.AddModelError(propertyName, ex);
-                    }
-                }
-            }
+            //        if (!string.IsNullOrEmpty(attemptedValue))
+            //        {
+            //            try
+            //            {
+            //                var date = DateTime.Parse(attemptedValue);
+            //            }
+            //            catch (FormatException ex)
+            //            {
+            //                bindingContext.ModelState.AddModelError(propertyName, ex);
+            //            }
+            //        }
+            //    }
+            //}
+
             base.BindProperty(controllerContext, bindingContext, propertyDescriptor);
         }
     }

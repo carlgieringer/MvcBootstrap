@@ -1,8 +1,8 @@
-﻿namespace MvcBootstrap.Models
+﻿namespace MvcBootstrap.ViewModels.Accounts
 {
     using System;
 
-    public interface IUserProfile : IEntity
+    public interface IUserProfileViewModel : IEntityViewModel
     {
         string Username { get; set; }
 

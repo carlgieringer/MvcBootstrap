@@ -8,27 +8,50 @@
     using System.Web.Mvc;
     using System.Web.Security;
 
+    using AutoMapper;
+
     using DotNetOpenAuth.AspNet;
 
     using Microsoft.Web.WebPages.OAuth;
 
     using MvcBootstrap.Data;
     using MvcBootstrap.Models;
+    using MvcBootstrap.ViewModels;
     using MvcBootstrap.ViewModels.Accounts;
 
     using TEMTDomain.StaticLib;
 
     using WebMatrix.WebData;
 
+    /// <summary>
+    /// A controller implementation that handles most of the details of windows SimpleMembershipProvider,
+    /// managing user accounts and third-party authentications.
+    /// </summary>
+    /// <typeparam name="TUserProfile"></typeparam>
+    /// <typeparam name="TExternalLoginRegistrationModel">
+    /// The type instantiated and passed to the view "ExternalLoginConfirmation",
+    /// and upon posting to that action, mapped to the new <see cref="TUserProfile"/>
+    /// before it is saved to the database.  This process provides subclassers the 
+    /// opportunity to ellicit additional information from users when they write the
+    /// view "ExternalLoginConfirmation" taking their implementation of <see cref="TExternalLoginRegistrationModel"/>.
+    /// </typeparam>
     [Authorize]
-    public abstract class AccountsControllerBase<TUserProfile> : Controller
+    public abstract class AccountsControllerBase<TUserProfile, TUserProfileViewModel> : Controller
         where TUserProfile : class, IUserProfile
+        where TUserProfileViewModel : class, IUserProfileViewModel, new()
     {
+        static AccountsControllerBase()
+        {
+            Mapper.CreateMap<TUserProfileViewModel, TUserProfile>();
+        }
+
+
         #region Constructors
 
         public AccountsControllerBase(IUserProfileRepository<TUserProfile> repository)
         {
             this.Repository = repository;
+            this.Config = new AccountsConfiguration();
         }
 
         #endregion
@@ -37,6 +60,8 @@
         #region Properties
 
         protected IUserProfileRepository<TUserProfile> Repository { get; private set; }
+
+        public AccountsConfiguration Config { get; private set; }
 
         #endregion
 
@@ -56,7 +81,7 @@
             if (this.ModelState.IsValid
                 && WebSecurity.Login(model.Username, model.Password, persistCookie: model.RememberMe))
             {
-                return this.RedirectToLocal(returnUrl);
+                return this.PostSuccessfulLogin(model.Username, returnUrl);
             }
 
             // If we got this far, something failed, redisplay form
@@ -79,25 +104,28 @@
         }
 
         [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
-        public ActionResult Register(RegisterModel model)
+        public ActionResult Register(RegistrationModel<TUserProfileViewModel> registrationModel)
         {
             if (this.ModelState.IsValid)
             {
                 // Attempt to register the user
                 try
                 {
-                    WebSecurity.CreateUserAndAccount(model.Username, model.Password);
-                    WebSecurity.Login(model.Username, model.Password);
-                    return this.RedirectToAction("Index", "Home");
+                    var profile = this.CreateUserProfile(registrationModel.UserProfileViewModel);
+
+                    WebSecurity.CreateAccount(profile.Username, registrationModel.Password, this.Config.RequireAccountConfirmation);
+                    WebSecurity.Login(profile.Username, registrationModel.Password);
+
+                    return this.PostSuccessfulLogin(profile.Username, null);
                 }
-                catch (MembershipCreateUserException e)
+                catch (MembershipCreateUserException ex)
                 {
-                    this.ModelState.AddModelError("", ErrorCodeToString(e.StatusCode));
+                    this.ModelState.AddModelError(string.Empty, ErrorCodeToString(ex.StatusCode));
                 }
             }
 
             // If we got this far, something failed, redisplay form
-            return this.View(model);
+            return this.View(registrationModel);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -220,24 +248,25 @@
         [HttpGet, AllowAnonymous]
         public ActionResult ExternalLoginCallback(string returnUrl)
         {
-            AuthenticationResult result =
-                OAuthWebSecurity.VerifyAuthentication(
-                    this.Url.Action("ExternalLoginCallback", new { ReturnUrl = returnUrl }));
+            string callbackUrl = this.Url.Action("ExternalLoginCallback", new { ReturnUrl = returnUrl });
+            var result = OAuthWebSecurity.VerifyAuthentication(callbackUrl);
             if (!result.IsSuccessful)
             {
                 return this.RedirectToAction("ExternalLoginFailure");
             }
 
-            if (OAuthWebSecurity.Login(result.Provider, result.ProviderUserId, createPersistentCookie: false))
+            if (OAuthWebSecurity.Login(result.Provider, result.ProviderUserId, this.Config.CreatePersistentCookie))
             {
-                return this.RedirectToLocal(returnUrl);
+                string username = OAuthWebSecurity.GetUserName(result.Provider, result.ProviderUserId);
+                return this.PostSuccessfulLogin(username, returnUrl);
             }
-
+            
             if (this.User.Identity.IsAuthenticated)
             {
                 // If the current user is logged in add the new account
                 OAuthWebSecurity.CreateOrUpdateAccount(result.Provider, result.ProviderUserId, this.User.Identity.Name);
-                return this.RedirectToLocal(returnUrl);
+                string username = OAuthWebSecurity.GetUserName(result.Provider, result.ProviderUserId);
+                return this.PostSuccessfulLogin(username, returnUrl);
             }
             else
             {
@@ -245,21 +274,26 @@
                 string loginData = OAuthWebSecurity.SerializeProviderUserId(result.Provider, result.ProviderUserId);
                 this.ViewBag.ProviderDisplayName = OAuthWebSecurity.GetOAuthClientData(result.Provider).DisplayName;
                 this.ViewBag.ReturnUrl = returnUrl;
-                return this.View(
-                    "ExternalLoginConfirmation",
-                    new RegisterExternalLoginModel { Username = result.UserName, ExternalLoginData = loginData });
+
+                var registrationModel = new ExternalLoginRegistrationModel<TUserProfileViewModel>
+                    {
+                        UserProfileViewModel = new TUserProfileViewModel(),
+                        ExternalLoginData = loginData
+                    };
+                registrationModel.UserProfileViewModel.Username = result.UserName;
+
+                return this.View("ExternalLoginConfirmation", registrationModel);
             }
         }
 
         [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
-        public ActionResult ExternalLoginConfirmation(RegisterExternalLoginModel model, string returnUrl)
+        public ActionResult ExternalLoginConfirmation(ExternalLoginRegistrationModel<TUserProfileViewModel> registrationModel, string returnUrl)
         {
             string provider = null;
             string providerUserId = null;
 
-            if (this.User.Identity.IsAuthenticated
-                || !OAuthWebSecurity.TryDeserializeProviderUserId(
-                    model.ExternalLoginData, out provider, out providerUserId))
+            if (this.User.Identity.IsAuthenticated || 
+                !OAuthWebSecurity.TryDeserializeProviderUserId(registrationModel.ExternalLoginData, out provider, out providerUserId))
             {
                 return this.RedirectToAction("Manage");
             }
@@ -268,34 +302,29 @@
             {
                 //// Insert a new user into the database
 
-                var profile = this.Repository.GetByUsername(model.Username);
+                var profile = this.Repository.GetByUsername(registrationModel.UserProfileViewModel.Username);
 
                 // Check if user already exists
                 if (profile == null)
                 {
-                    // Insert name into the profile table
-                    profile = this.Repository.CreateAndAdd();
-                    profile.Username = model.Username;
-                    this.Repository.SaveChanges();
+                    profile = this.CreateUserProfile(registrationModel.UserProfileViewModel);
 
-                    var profile2 = this.Repository.GetFromLocal(profile);
-
-                    OAuthWebSecurity.CreateOrUpdateAccount(provider, providerUserId, model.Username);
+                    OAuthWebSecurity.CreateOrUpdateAccount(provider, providerUserId, profile.Username);
                     OAuthWebSecurity.Login(provider, providerUserId, createPersistentCookie: false);
 
-                    return this.RedirectToLocal(returnUrl);
+                    return this.PostSuccessfulLogin(profile.Username, returnUrl);
                 }
                 else
                 {
                     this.ModelState.AddModelError(
-                        Of<RegisterExternalLoginModel>.CodeNameFor(m => m.Username),
+                        Of<TUserProfileViewModel>.CodeNameFor(m => m.Username),
                         "User name already exists. Please enter a different user name.");
                 }
             }
 
             this.ViewBag.ProviderDisplayName = OAuthWebSecurity.GetOAuthClientData(provider).DisplayName;
             this.ViewBag.ReturnUrl = returnUrl;
-            return this.View(model);
+            return this.View(registrationModel);
         }
 
         [HttpGet, AllowAnonymous]
@@ -314,8 +343,8 @@
         [ChildActionOnly]
         public ActionResult RemoveExternalLogins()
         {
-            ICollection<OAuthAccount> accounts = OAuthWebSecurity.GetAccountsFromUserName(this.User.Identity.Name);
-            List<ExternalLogin> externalLogins = new List<ExternalLogin>();
+            var accounts = OAuthWebSecurity.GetAccountsFromUserName(this.User.Identity.Name);
+            var externalLogins = new List<ExternalLogin>();
             foreach (OAuthAccount account in accounts)
             {
                 AuthenticationClientData clientData = OAuthWebSecurity.GetOAuthClientData(account.Provider);
@@ -340,8 +369,20 @@
 
         #region Helpers
 
-        private ActionResult RedirectToLocal(string returnUrl)
+        private TUserProfile CreateUserProfile(TUserProfileViewModel userProfileViewModel)
         {
+            // Insert name into the profile table
+            var profile = this.Repository.CreateAndAdd();
+            // Transfer the values from TExternalLoginRegistration to the new profile
+            Mapper.Map(userProfileViewModel, profile);
+            this.Repository.SaveChanges();
+            return profile;
+        }
+
+        private ActionResult PostSuccessfulLogin(string username, string returnUrl)
+        {
+            this.UpdateLastLogin(username);
+
             if (this.Url.IsLocalUrl(returnUrl))
             {
                 return this.Redirect(returnUrl);
@@ -352,10 +393,19 @@
             }
         }
 
+        private void UpdateLastLogin(string username)
+        {
+            var userProfile = this.Repository.GetByUsername(username);
+            userProfile.LastLogin = DateTime.Now;
+            this.Repository.SaveChanges();
+        }
+
         public enum ManageMessageId
         {
             ChangePasswordSuccess,
+
             SetPasswordSuccess,
+            
             RemoveLoginSuccess,
         }
 
@@ -368,6 +418,7 @@
             }
 
             public string Provider { get; private set; }
+
             public string ReturnUrl { get; private set; }
 
             public override void ExecuteResult(ControllerContext context)

@@ -154,25 +154,31 @@
     <Reference Include="WebMatrix.WebData, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\BootstrapDbEntityValidationException.cs" />
     <Compile Include="Data\Extensions\DbContextExtensions.cs" />
+    <Compile Include="Data\Extensions\DbEntityValidationExceptionExtensions.cs" />
     <Compile Include="Data\IUserProfileRepository.cs" />
     <Compile Include="Data\UserProfileRepositoryBase.cs" />
     <Compile Include="ViewModels\Accounts\ExternalLogin.cs" />
     <Compile Include="Models\IUserProfile.cs" />
-    <Compile Include="Models\UserProfileBase.cs" />
+    <Compile Include="Models\UserProfile.cs" />
     <Compile Include="Util\HashCodeHelper.cs" />
     <Compile Include="Util\StringHelper.cs" />
+    <Compile Include="ViewModels\Accounts\IExternalLoginRegistrationModel.cs" />
+    <Compile Include="ViewModels\Accounts\IUserProfileViewModel.cs" />
     <Compile Include="ViewModels\Accounts\LocalPasswordModel.cs" />
     <Compile Include="ViewModels\Accounts\LoginModel.cs" />
-    <Compile Include="ViewModels\Accounts\RegisterExternalLoginModel.cs" />
-    <Compile Include="ViewModels\Accounts\RegisterModel.cs" />
+    <Compile Include="ViewModels\Accounts\ExternalLoginRegistrationModelBase.cs" />
+    <Compile Include="ViewModels\Accounts\RegistrationModel.cs" />
     <Compile Include="ViewModels\Attributes\HideInAttribute.cs" />
     <Compile Include="ViewModels\Choice.cs" />
     <Compile Include="ViewModels\IChoice.cs" />
     <Compile Include="ViewModels\IChoices.cs" />
     <Compile Include="ViewModels\Choices.cs" />
+    <Compile Include="ViewModels\Accounts\UserProfileViewModel.cs" />
     <Compile Include="Web\BootstrapCss.cs" />
     <Compile Include="Web\HtmlTag.cs" />
+    <Compile Include="Web\Mvc\Controllers\AccountsConfiguration.cs" />
     <Compile Include="Web\Mvc\Controllers\AccountsControllerBase.cs" />
     <Compile Include="Web\Mvc\Controllers\BootstrapActions.cs" />
     <Compile Include="ViewModels\Attributes\ShowInAttribute.cs" />

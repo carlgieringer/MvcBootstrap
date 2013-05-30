@@ -306,10 +306,17 @@
 
         #region Form Input Methods
 
-        public MvcHtmlString Submit(string text, Icon icon = Icon.None, ButtonStyle style = ButtonStyle.Default)
+        public MvcHtmlString Submit(string text, Icon icon = Icon.None, ButtonStyle style = ButtonStyle.Default, string title = null)
         {
             var buttonBuilder = new TagBuilder("button");
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                buttonBuilder.Attributes["title"] = title;
+            }
+
             FormatTag(buttonBuilder, text, icon, style);
+
             return buttonBuilder.ToMvcHtmlString(TagRenderMode.Normal);
         }
 
@@ -344,7 +351,7 @@
             return tagBuilder.ToMvcHtmlString(TagRenderMode.Normal);
         }
 
-        public MvcHtmlString SubmitGroup(string text, Icon icon = Icon.None, ButtonStyle style = ButtonStyle.Default)
+        public MvcHtmlString SubmitGroup(string text, Icon icon = Icon.None, ButtonStyle style = ButtonStyle.Primary)
         {
             var controlsBuilder = new TagBuilder("div");
             controlsBuilder.AddCssClass("controls");
