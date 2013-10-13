@@ -16,6 +16,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcBootstrap.Tests", "MvcBootstrap.Tests\MvcBootstrap.Tests.csproj", "{A4037E13-E3BB-4909-AF5C-6E6227B43B48}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{11B8F352-B74C-45B2-826F-4F3F96BF9EF0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,8 +30,15 @@ Global
 		{27E05BA3-CDDF-436F-A072-DFD38F953B30}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27E05BA3-CDDF-436F-A072-DFD38F953B30}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27E05BA3-CDDF-436F-A072-DFD38F953B30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4037E13-E3BB-4909-AF5C-6E6227B43B48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4037E13-E3BB-4909-AF5C-6E6227B43B48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4037E13-E3BB-4909-AF5C-6E6227B43B48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4037E13-E3BB-4909-AF5C-6E6227B43B48}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A4037E13-E3BB-4909-AF5C-6E6227B43B48} = {11B8F352-B74C-45B2-826F-4F3F96BF9EF0}
 	EndGlobalSection
 EndGlobal
